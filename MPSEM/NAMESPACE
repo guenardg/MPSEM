@@ -1,0 +1,18 @@
+### MPSEM ### Guillaume Guenard - Universite de Montreal
+#
+# Imports
+import(ape,MASS)
+importFrom("stats", "AIC", "anova", "as.formula", "lm", "na.omit", "optim", "qt", "rnorm")
+#
+#
+# Exports with patterns
+exportPattern("^[^\\.]")
+#
+# Register S3 methods
+S3method(as.data.frame, PEM)
+S3method(predict, PEM)
+S3method(print, PEM)
+S3method(print, graph)
+#
+# Load dynamic library
+useDynLib(MPSEM, .registration = TRUE)

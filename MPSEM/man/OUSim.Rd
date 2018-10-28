@@ -1,0 +1,148 @@
+\encoding{utf8}
+\name{TraitOUsimTree}
+\alias{ trait-simulator }
+\alias{ EvolveOptimMarkovTree }
+\alias{ OUvar }
+\alias{ PEMvar }
+\alias{ TraitOUsimTree }
+\alias{ TraitVarGraphSim }
+\title{ Simulates the evolution of a quantitative trait. }
+\description{
+  Functions to simulate the evolution of a quantitative trait along a
+  phylogenetic tree inputted as an object of class \sQuote{phylo}
+  (package \link{ape}) or \code{\link{graph-class}} object.
+}
+\usage{
+EvolveOptimMarkovTree(tp, tw, anc, p=1, root=tp$edge[1,1])
+TraitOUsimTree(tp, a, sigma, opt, p=1, root=tp$edge[1,1])
+OUvar(d, a=0, theta=1, sigma=1)
+PEMvar(d, a=0, psi=1)
+TraitVarGraphSim(x, variance, distance="distance", p=1, ...)
+}
+\arguments{
+  \item{ tp }{ A rooted phylogenetic tree of class \sQuote{phylo} (see
+    package \link{ape}), }
+  \item{ tw }{ Transition matrix giving the probability that the optimum
+    trait value changes from one state to another at vertices. All rows
+    must sum to 1. }
+  \item{ anc }{ Ancestral state of a trait (at root). }
+  \item{ p }{ Number of variates to generate. }
+  \item{ root }{ Root node of the tree. }
+  \item{ d }{ Phylogenetic distances (edge lengths). }
+  \item{ a }{ Selection rate (\code{\link{OUvar}}) or steepness
+    (\code{\link{PEMvar}}). }
+  \item{ theta }{ Adaptive evolution rate, i.e. mean trait shift by natural selection. }
+  \item{ sigma }{ Neutral evolution rate, i.e. mean trait shift by drift. }
+  \item{ psi }{ Mean evolution rate. }
+  \item{ opt }{ An index vector of optima at the nodes. }
+  \item{ x }{ A \code{\link{graph-class}} object. }
+  \item{ variance }{ Variance function (\code{\link{OUvar}},
+    \code{\link{PEMvar}}, or any suitable user-defined function). }
+  \item{ distance }{ The name of the member of \sQuote{x$edge} where
+    edge lengths can be found. }
+  \item{ ... }{ Additional parameters for the specified variance function. }
+}
+\details{
+  Function \code{EvolveOptimMarkovTree} allows one to simulate the changes of
+  optimum trait values as a Markov process. The index whereby the process
+  starts, at the tree root, is set by parameter \code{anc}; this is the
+  ancestral character state. From the root onwards to the tips, the
+  optimum is given the opportunity to change following a multinomial
+  random draw with transition probabilities given by the rows of matrix
+  \code{tw}. The integers thus obtained can be used as indices of a
+  vector featuring the actual optimum trait values corresponding to the
+  simulated selection regimes. The resulting optimum trait values at the
+  nodes are used by \code{\link{TraitOUsimTree}} as its parameters
+  \code{opt} to simulate trait values at nodes and tips. Function
+  \code{\link{TraitVarGraphSim}} uses a graph variance function (either
+  \code{OUvar} or \code{PEMvar}) to reconstruct a covariance matrix that
+  is used to generate covariates drawn from a multi-normal distribution.
+}
+\value{
+  Functions \code{\link{EvolveOptimMarkovTree}} and
+  \code{\link{TraitOUsimTree}} return a matrix whose rows represent the
+  vertices (nodes and tips) of the phylogenetic tree and whose columns
+  stand for the \code{n} different trials the function was asked to
+  perform. For \code{EvolveQTraitTree}, the elements of the matrix are
+  integers, representing the selection regimes prevailing at the nodes
+  and tips, whereas for \code{\link{TraitOUsimTree}}, the elements are
+  simulated quantitative trait values at the nodes and tips. These
+  functions are implemented in C language and therefore run swiftly even
+  for large (10000+ species) trees.
+
+  Function \code{\link{TraitVarGraphSim}} returns \code{p} phylogenetic
+  signals and is implemented using a rotation of a matrix of standard
+  normal random (mean=0, variance=1) deviates. The rotation matrix is
+  itself obtained by Choleski factorization of the trait covariance
+  matrix expected for a given set of trees, variance function, and
+  variance function parameters.
+}
+\author{ Guillaume Guénard, Département de sciences biologiques
+  Université de Montréal, Montréal, QC, Canada. }
+\references{
+  Butler, M. A. & King, A. A. 2004. Phylogenetic comparative analysis: a
+  modeling approach for adaptive evolution. Am. Nat. 164: 683-695.
+
+  Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic
+  eigenvector maps (PEM): a framework to model and predict species
+  traits. Meth. Ecol. Evol. In press.
+}
+\examples{
+opt <- c(-2,0,2) # Three trait optima: -2, 0, and 2
+### Transition probabilities:
+transit <- matrix(c(0.7,0.2,0.2,0.2,0.7,0.1,0.1,0.1,0.7),
+                  length(opt),length(opt),dimnames=list(from=opt,to=opt))
+
+# In this example, the trait has a probability of 0.7 to stay at a given
+# optimum, a probability of 0.2 for the optimum to change from -2 to 0,
+# from 0 to -2, and from 2 to -2, and a probability of 0.1 for the
+# optimum to change from -2 to 2, from 0 to 2, and from 2 to 0.
+nsp <- 25  # A random tree for 25 species.
+tree2 <- rtree(nsp,tip.label=paste("Species",1:nsp,sep=""))
+tree2$node.label=paste("N",1:tree2$Nnode,sep="")  # Node labels.
+
+## Simulate 10 trials of optimum change.
+reg <- EvolveOptimMarkovTree(tp=tree2,tw=transit,p=10,anc=2)
+y1 <- TraitOUsimTree(tp=tree2,a=0,sigma=1,
+                     opt=opt[reg[,1]],p=10)    # Neutral
+y2 <- TraitOUsimTree(tp=tree2,a=1,sigma=1,
+                     opt=opt[reg[,1]],p=10)    # Few selection.
+y3 <- TraitOUsimTree(tp=tree2,a=10,sigma=1,
+                     opt=opt[reg[,1]],p=10)    # Strong selection.
+
+### Display optimum change with colours.
+displayOUprocess <- function(tp,trait,regime,mvalue) {
+  layout(matrix(1:2,1,2))
+  n <- length(tp$tip.label)
+ape::plot.phylo(tp,show.tip.label=TRUE,show.node.label=TRUE,root.edge=FALSE,
+                direction="rightwards",adj=0,
+                edge.color=rainbow(length(trait))[regime[tp$edge[,2]]])
+  plot(y=1:n,x=mvalue[1:n],type="b",xlim=c(-5,5),ylab="",xlab="Trait value",yaxt="n",
+       bg=rainbow(length(trait))[regime[1:n]],pch=21) 
+  text(trait[regime[1:n]],y=1:n,x=5,col=rainbow(length(trait))[regime[1:n]])
+  abline(v=0)
+}
+
+displayOUprocess(tree2,opt,reg[,1],y1[,1])  # Trait evolve neutrally,
+displayOUprocess(tree2,opt,reg[,1],y2[,1])  # under weak selection,
+displayOUprocess(tree2,opt,reg[,1],y3[,1])  # under strong selection.
+
+#
+x <- Phylo2DirectedGraph(tree2)
+y4 <- TraitVarGraphSim(x, variance = MPSEM::OUvar, p=10, a=5)
+#
+DisplayTreeEvol <- function(tp,mvalue) {
+  layout(matrix(1:2,1,2))
+  n <- length(tp$tip.label)
+  ape::plot.phylo(tp,show.tip.label = TRUE, show.node.label = TRUE, root.edge = FALSE,
+                  direction = "rightwards", adj = 0)
+  plot(y=1:n,x=mvalue[1:n],type="b",xlim=c(-5,5),ylab="",xlab="Trait value",yaxt="n",pch=21)
+  abline(v=0)
+}
+## Recursively displays the simulated traits.
+for(i in 1:10) {
+  DisplayTreeEvol(tree2,y4[i,])
+  if(is.null(locator(1)))
+    break                   # Stops recursive display on a mouse right-click.
+}
+}
