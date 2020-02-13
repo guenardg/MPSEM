@@ -75,5 +75,5 @@
 
 \examples{
   ### To view MPSEM tutorial
-  vignette("MPSEM")
+  vignette("MPSEM", package="MPSEM")
 }

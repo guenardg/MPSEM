@@ -1,8 +1,8 @@
-%% LyX 2.2.3 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.3.3 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
-\documentclass[english]{article}
+\documentclass[canadian]{article}
 \usepackage[T1]{fontenc}
-\usepackage[latin9]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage[authoryear]{natbib}
 
@@ -15,11 +15,9 @@
 
 \usepackage{babel}
 \begin{document}
-
-\title{A phylogenetic modelling tutorial using Phylogenetic Eigenvector
-Maps (PEM) as implemented in R package MPSEM ($0.3$-$4$).}
-
-\author{Guillaume Guénard}
+\title{A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps
+(PEM) as implemented in R package MPSEM ($0.3$-$6$).}
+\author{Guillaume GuÃ©nard}
 
 \maketitle
 \tableofcontents{}
@@ -28,37 +26,37 @@ Maps (PEM) as implemented in R package MPSEM ($0.3$-$4$).}
 
 Phylogenetic Eigenvector Maps (PEM) is a method to perform phylogenetic
 modelling. Phylogenetic modelling consists in modelling trait evolution
-and predicting trait values using phylogeny as as an explanatory factor
+and predicting trait values using phylogeny as an explanatory factor
 \citep{Guenard2013}. Phylogenetic modelling allows one to predict
-trait values when it is difficult or not practical to obtain them,
-for instance when species are rare or extinct or when information
-is needed for a number of species and trait values are only available
-for a relatively small number of them \citep{Guenard2011,Guenard2014}.
+trait values when it is difficult or impractical to obtain them, for
+instance when species are rare, extinct, or when information is needed
+for several species and trait values are only available for a relatively
+small number of them \citep{Guenard2011,Guenard2014}.
 
 To apply phylogenetic modelling, one needs to have a set of species
 with known phylogeny and trait values (hereafter referred to as the
 ``model species'') as well as to know the locations, with respect
-to the phylogeny of the models species, of the species for which the
-trait value is being predicted (hereafter referred to as the ``target
+to the phylogeny of the models species, of the species for which trait
+values are being predicted (hereafter referred to as the ``target
 species''). Phylogenetic modelling can be performed conjointly with
 trait correlation modelling: it is possible to use other traits with
 known (or estimable) values for the target species to help predict
 a trait of interest. Phylogenetic trees being acyclic graphs, I will
 hereby prefer terms belonging to the graph theory over terms phylogeneticists
 may be more familiar with. Therefore I will use ``edge'' over ``branches''
-and ``vertex'' over ``root'', ``node'' or ``tip''; safe when
-I want to be specific about what a vertex represents.
+and ``vertex'' over ``root'', ``node'' or ``tip''; safe in
+cases where I want to be specific about what a vertex represents.
 
 The PEM work flow consists in 1) calculating the influence matrix
 of the graph, 2) specifying a model of trait evolution along the edges
-of a phylogenetic tree, 3) calculating the left eigenvectors of the
-weighted and centred influence matrix and 4) use these eigenvectors
+of the phylogenetic tree, 3) calculating the left eigenvectors of
+the weighted and centred influence matrix and 4) use these eigenvectors
 as descriptors \citep{Guenard2013}. An {\tt R} implementation of
 that approach is found in package {\tt MPSEM}. {\tt MPSEM} is meant
-to make the aforementionned process as seemless as possible, and is
-a work in progress. I welcome anyone to provide relevant suggestions
-and constructive remark aimed at making {\tt MPSEM} a better, more
-efficient and user-friendly, interface to phylogenertic modelling.
+to make the aforementioned process as seamless as possible. It is
+a work in progress; I welcome anyone to provide relevant suggestions
+and constructive remarks aimed at making {\tt MPSEM} a better, more
+efficient and user-friendly, interface to phylogenetic modelling.
 
 Assuming package {\tt MPSEM} is installed, the first step to calculate
 a PEM is to load package {\tt MPSEM}, which depends on packages {\tt ape}
@@ -71,8 +69,8 @@ library(MPSEM)
 \section{Preparing the data}
 
 For the present tutorial, we will use the data set {\tt perissodactyla}
-from R package caper. These data from \citet{Purvis1995} are loaded
-into your {\tt R} workspace as follows:
+from R package {\tt caper}. These data from \citet{Purvis1995} are
+loaded into your {\tt R} workspace as follows:
 
 <<load_data>>=
 data(perissodactyla,package="caper")
@@ -116,7 +114,7 @@ perissodactyla.tree <- drop.tip(perissodactyla.tree,
                   perissodactyla.tree$tip.label[is.na(spmatch)])
 @
 
-Now the the data match the tree in content, one needs to verify whether
+Now that the data match the tree in content, one needs to verify whether
 they do so in order.
 
 <<check_order>>=
@@ -133,7 +131,7 @@ perissodactyla.data <- perissodactyla.data[spmatch,]
 all(perissodactyla.tree$tip.label==perissodactyla.data[,1L])
 @
 
-The last code line is just a last check to guaranty that all species
+The last code line is just a last check to guarantee that all species
 names are matching. As a last step before we are done with data manipulation,
 I will put the binary names in place of the row names and delete the
 table's first row:
@@ -166,20 +164,20 @@ perissodactyla.tree.train <- drop.tip(perissodactyla.tree,
 
 \subsection{Edge weighting function}
 
-When dealing with PEM, we will use the vocabulary of the graph theory.
-Therefore, a tree will be referred to as a (directed) graph, a branch
-as an edge, and the root, a node or a tip as vertices. PEM allows
-one to specify a model of trait evolution along the edges of the tree.
-That model is given as a function having edge lengths as its first
-argument, followed by an arbitrary number of parameters provided as
-named arguments. Although the PEM framework enables one to specify
-different weighting functions and parameter sets for different parts
-of the tree, the current implementation of {\tt MPSEM} ($0.2-1$)
-does only support the following power function:
+As previously announced, I use the vocabulary of the graph theory
+when describing PEM: a tree is a (directed) graph, a branch is an
+edge, and the root, nodes, and tips are vertices. PEM allows one to
+specify a model of trait evolution along the edges of the tree. That
+model is given as a function having edge lengths as its first argument,
+followed by an arbitrary number of parameters provided as named arguments.
+Although PEM allows one to specify different parameter sets for different
+parts of the phylogeny as well as arbitrary weighting functions, the
+current implementation of {\tt MPSEM} ($0.3-6$) only supports the
+following power function:
 \[
 w_{a,\psi}(\phi_{j})=\begin{cases}
 \psi\phi^{\frac{1-a}{2}} & \phi_{j}>0\\
-0 & otherwise,
+0 & \phi_{j}=0,
 \end{cases}
 \]
 where $a$ is the steepness parameter describing how abrupt the changes
@@ -220,8 +218,8 @@ by {\tt MPSEM} for different values of steepness ($a$) and evolution
 rate ($\psi$).\label{fig:Edge-weighting-function}}
 \end{figure}
 \citep{Guenard2013}. As the steepness parameter increases, the weight
-assigned to a give edge increases more sharply with respect to the
-phylogenetic distance (or evolutionary time) (Fig. \ref{fig:Edge-weighting-function}).
+assigned to a given edge increases more sharply with respect to the
+phylogenetic distance (or evolutionary time; Fig. \ref{fig:Edge-weighting-function}).
 In the context of PEM, the edge weight represent the relative rate
 of evolution of the trait; the greater the edge weight, the greater
 the trait change along that edge. When $a=0$, trait evolution is
@@ -229,8 +227,8 @@ neutral and therefore proceeds by random walk along edges. When $a=1$,
 edge weights no longer increase as a function of edge lengths. That
 situation corresponds to the scenario in which trait evolution is
 driven by the strongest possible natural selection: following a speciation
-event trait either change abruptly (directional selection) or do not
-change at all (stabilizing selection) at the vertex.
+event, trait either change abruptly (directional selection) at the
+vertex or do not change at all (stabilizing selection).
 
 \subsection{Phylogenetic graph}
 
@@ -260,8 +258,8 @@ stores the phylogenetic distances ($\phi_{j}$), which correspond
 to the branch lengths of {\tt perissodactyla.tree}. The element {\tt \$vertex}
 is a list containing an arbitrary number of elements storing vertex
 properties. In the present case, a logical vector created by {\tt Phylo2DirectedGraph()}
-and called {\tt \$species} stores whether a give vertex is a represent
-a species (i.e. is a tip). In addition to edge and vertex information,
+and called {\tt \$species} stores whether a given vertex represents
+a species (i.e., it is a tip). In addition to edge and vertex information,
 the container stores other useful information in the form of attributes:
 {\tt ev} stores the number of edges and vertices whereas {\tt elabel}
 and {\tt vlabel} store edge and vertex labels, respectively.
@@ -391,7 +389,7 @@ the female weight is used as an auxiliary trait (second call).
 To model trait values, PEM are used as descriptors in other modelling
 method. any suitable method can be used. For instance, package {\tt MPSEM}
 contains a utility function called {\tt lmforwardsequentialAICc()}
-that does stepwise variable addition in multiple regression analysis
+that does step-wise variable addition in multiple regression analysis
 on the basis of the corrected Akaike Information Criterion (AICc;
 \citealp{Hurvich1993}):
 
@@ -478,7 +476,7 @@ dropped and the phylogenetic graph as we did previously for explanatory
 purposes. Also, I suggest storing the internal information about each
 cross-validation steps into a list (hereby called {\tt jackinfo}),
 so it is possible to access the many details of the analyses later
-on
+on.
 \begin{figure}
 <<plot_pred_obs,echo=FALSE,fig.height=4,fig.width=4>>=
 par(mar=c(5,5,2,2)+0.1)
@@ -495,9 +493,8 @@ arrows(x0 = perissodactyla.data[,"lower"],x1 = perissodactyla.data[,"upper"],
 \caption{Predicted and observed $\log_{10}$ neonatal body mass for \Sexpr{nrow(perissodactyla.data)}
 odd-toed ungulate species.\label{fig:Predicted-and-observed}}
 \end{figure}
-. From the present cross-validation, we found that the $\log$ of
-the neonatal body mass can be predicted with a cross-validated $R^{2}$
-of \Sexpr{round(1-(sum((perissodactyla.data[,"predictions"]-perissodactyla.data[,"log.neonatal.wt"])**2)/nrow(perissodactyla.data))/var(perissodactyla.data[,"log.neonatal.wt"]),2)}
+ From the present cross-validation, we found that the ($\log$) neonatal
+body mass can be predicted with a cross-validated $R^{2}$ of \Sexpr{round(1-(sum((perissodactyla.data[,"predictions"]-perissodactyla.data[,"log.neonatal.wt"])**2)/nrow(perissodactyla.data))/var(perissodactyla.data[,"log.neonatal.wt"]),2)}
 (Figure \ref{fig:Predicted-and-observed}).
 
 \section{Other utility functions}

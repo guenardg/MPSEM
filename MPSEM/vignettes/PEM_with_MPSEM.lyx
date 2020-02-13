@@ -1,5 +1,5 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -14,9 +14,9 @@
 knitr
 \end_modules
 \maintain_unincluded_children false
-\language english
+\language canadian
 \language_package default
-\inputencoding auto
+\inputencoding utf8
 \fontencoding global
 \font_roman "default" "default"
 \font_sans "default" "default"
@@ -28,6 +28,8 @@ knitr
 \font_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -57,6 +59,7 @@ knitr
 \suppress_date false
 \justification true
 \use_refstyle 1
+\use_minted 0
 \index Index
 \shortcut idx
 \color #008000
@@ -65,7 +68,10 @@ knitr
 \tocdepth 3
 \paragraph_separation indent
 \paragraph_indentation default
-\quotes_language english
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
@@ -85,7 +91,7 @@ A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM)
 \end_inset
 
 -
-\begin_inset Formula $2$
+\begin_inset Formula $6$
 \end_inset
 
 ).
@@ -112,21 +118,23 @@ Introduction
 Phylogenetic Eigenvector Maps (PEM) is a method to perform phylogenetic
  modelling.
  Phylogenetic modelling consists in modelling trait evolution and predicting
- trait values using phylogeny as as an explanatory factor 
+ trait values using phylogeny as an explanatory factor 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Guenard2013"
+literal "true"
 
 \end_inset
 
 .
  Phylogenetic modelling allows one to predict trait values when it is difficult
- or not practical to obtain them, for instance when species are rare or
- extinct or when information is needed for a number of species and trait
- values are only available for a relatively small number of them 
+ or impractical to obtain them, for instance when species are rare, extinct,
+ or when information is needed for several species and trait values are
+ only available for a relatively small number of them 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Guenard2011,Guenard2014"
+literal "true"
 
 \end_inset
 
@@ -144,7 +152,7 @@ model species
 \end_inset
 
 ) as well as to know the locations, with respect to the phylogeny of the
- models species, of the species for which the trait value is being predicted
+ models species, of the species for which trait values are being predicted
  (hereafter referred to as the 
 \begin_inset Quotes eld
 \end_inset
@@ -207,17 +215,19 @@ tip
 \begin_inset Quotes erd
 \end_inset
 
-; safe when I want to be specific about what a vertex represents.
+; safe in cases where I want to be specific about what a vertex represents.
 \end_layout
 
 \begin_layout Standard
 The PEM work flow consists in 1) calculating the influence matrix of the
- graph, 2) specifying a model of trait evolution along the edges of a phylogenet
-ic tree, 3) calculating the left eigenvectors of the weighted and centred
- influence matrix and 4) use these eigenvectors as descriptors 
+ graph, 2) specifying a model of trait evolution along the edges of the
+ phylogenetic tree, 3) calculating the left eigenvectors of the weighted
+ and centred influence matrix and 4) use these eigenvectors as descriptors
+ 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Guenard2013"
+literal "true"
 
 \end_inset
 
@@ -262,10 +272,9 @@ tt MPSEM}
 
 \end_inset
 
- is meant to make the aforementionned process as seemless as possible, and
- is a work in progress.
- I welcome anyone to provide relevant suggestions and constructive remark
- aimed at making 
+ is meant to make the aforementioned process as seamless as possible.
+ It is a work in progress; I welcome anyone to provide relevant suggestions
+ and constructive remarks aimed at making 
 \begin_inset ERT
 status collapsed
 
@@ -278,8 +287,7 @@ tt MPSEM}
 
 \end_inset
 
- a better, more efficient and user-friendly, interface to phylogenertic
- modelling.
+ a better, more efficient and user-friendly, interface to phylogenetic modelling.
 \end_layout
 
 \begin_layout Standard
@@ -340,7 +348,7 @@ tt MASS}
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -380,11 +388,25 @@ tt perissodactyla}
 
 \end_inset
 
- from R package caper.
+ from R package 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\backslash
+tt caper}
+\end_layout
+
+\end_inset
+
+.
  These data from 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Purvis1995"
+literal "true"
 
 \end_inset
 
@@ -706,7 +728,7 @@ perissodactyla.tree <- drop.tip(perissodactyla.tree,
 \end_layout
 
 \begin_layout Standard
-Now the the data match the tree in content, one needs to verify whether
+Now that the data match the tree in content, one needs to verify whether
  they do so in order.
 \end_layout
 
@@ -791,7 +813,7 @@ all(perissodactyla.tree$tip.label==perissodactyla.data[,1L])
 \end_layout
 
 \begin_layout Standard
-The last code line is just a last check to guaranty that all species names
+The last code line is just a last check to guarantee that all species names
  are matching.
  As a last step before we are done with data manipulation, I will put the
  binary names in place of the row names and delete the table's first row:
@@ -938,16 +960,16 @@ Edge weighting function
 \end_layout
 
 \begin_layout Standard
-When dealing with PEM, we will use the vocabulary of the graph theory.
- Therefore, a tree will be referred to as a (directed) graph, a branch as
- an edge, and the root, a node or a tip as vertices.
+As previously announced, I use the vocabulary of the graph theory when describin
+g PEM: a tree is a (directed) graph, a branch is an edge, and the root,
+ nodes, and tips are vertices.
  PEM allows one to specify a model of trait evolution along the edges of
  the tree.
  That model is given as a function having edge lengths as its first argument,
  followed by an arbitrary number of parameters provided as named arguments.
- Although the PEM framework enables one to specify different weighting functions
- and parameter sets for different parts of the tree, the current implementation
- of 
+ Although PEM allows one to specify different parameter sets for different
+ parts of the phylogeny as well as arbitrary weighting functions, the current
+ implementation of 
 \begin_inset ERT
 status collapsed
 
@@ -961,15 +983,15 @@ tt MPSEM}
 \end_inset
 
  (
-\begin_inset Formula $0.2-1$
+\begin_inset Formula $0.3-6$
 \end_inset
 
-) does only support the following power function:
+) only supports the following power function:
 \begin_inset Formula 
 \[
 w_{a,\psi}(\phi_{j})=\begin{cases}
 \psi\phi^{\frac{1-a}{2}} & \phi_{j}>0\\
-0 & otherwise,
+0 & \phi_{j}=0,
 \end{cases}
 \]
 
@@ -1192,13 +1214,14 @@ name "fig:Edge-weighting-function"
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Guenard2013"
+literal "true"
 
 \end_inset
 
 .
- As the steepness parameter increases, the weight assigned to a give edge
+ As the steepness parameter increases, the weight assigned to a given edge
  increases more sharply with respect to the phylogenetic distance (or evolutiona
-ry time) (Fig.
+ry time; Fig.
  
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -1223,8 +1246,8 @@ reference "fig:Edge-weighting-function"
 , edge weights no longer increase as a function of edge lengths.
  That situation corresponds to the scenario in which trait evolution is
  driven by the strongest possible natural selection: following a speciation
- event trait either change abruptly (directional selection) or do not change
- at all (stabilizing selection) at the vertex.
+ event, trait either change abruptly (directional selection) at the vertex
+ or do not change at all (stabilizing selection).
 \end_layout
 
 \begin_layout Subsection
@@ -1429,8 +1452,7 @@ $species}
 
 \end_inset
 
- stores whether a give vertex is a represent a species (i.e.
- is a tip).
+ stores whether a given vertex represents a species (i.e., it is a tip).
  In addition to edge and vertex information, the container stores other
  useful information in the form of attributes: 
 \begin_inset ERT
@@ -2289,11 +2311,12 @@ tt lmforwardsequentialAICc()}
 
 \end_inset
 
- that does stepwise variable addition in multiple regression analysis on
+ that does step-wise variable addition in multiple regression analysis on
  the basis of the corrected Akaike Information Criterion (AICc; 
 \begin_inset CommandInset citation
 LatexCommand citealp
 key "Hurvich1993"
+literal "true"
 
 \end_inset
 
@@ -2803,7 +2826,7 @@ tt jackinfo}
 
 \end_inset
 
-), so it is possible to access the many details of the analyses later on
+), so it is possible to access the many details of the analyses later on.
 \begin_inset Float figure
 wide false
 sideways false
@@ -2914,12 +2937,11 @@ name "fig:Predicted-and-observed"
 
 \end_inset
 
-.
- From the present cross-validation, we found that the 
+ From the present cross-validation, we found that the (
 \begin_inset Formula $\log$
 \end_inset
 
- of the neonatal body mass can be predicted with a cross-validated 
+) neonatal body mass can be predicted with a cross-validated 
 \begin_inset Formula $R^{2}$
 \end_inset
 
@@ -3333,6 +3355,7 @@ tt C}
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Butler2004"
+literal "true"
 
 \end_inset
 
