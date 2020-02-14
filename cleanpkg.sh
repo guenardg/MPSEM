@@ -1,14 +1,15 @@
 #!/bin/bash
+PKG='MPSEM'
 rm -f *~
-rm MPSEM.Rcheck.tar.gz
-tar cvzf MPSEM.Rcheck.tar.gz MPSEM.Rcheck
-rm -rf MPSEM.Rcheck
-rm -f MPSEM/*~
-rm -f MPSEM/man/*~
-rm -f MPSEM/R/*~
-rm -f MPSEM/src/*~
-rm -f MPSEM/src/*.so
-rm -f MPSEM/src/*.o
-rm -f MPSEM/src/*.rds
-cd MPSEM && find -type f \( -not -name "MD5" \) -exec md5sum '{}' \; > MD5
-
+rm -f .*~
+rm $PKG.Rcheck.tar.gz
+tar cvzf $PKG.Rcheck.tar.gz $PKG.Rcheck
+rm -rf $PKG.Rcheck
+rm -f $PKG/*~
+rm -f $PKG/man/*~
+rm -f $PKG/R/*~
+rm -f $PKG/src/*~
+rm -f $PKG/src/*.so
+rm -f $PKG/src/*.o
+rm -f $PKG/src/*.rds
+cd $PKG && find -type f \( -not -name "MD5" \) -exec md5sum '{}' \; > MD5
