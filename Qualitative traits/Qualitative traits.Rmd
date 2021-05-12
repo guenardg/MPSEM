@@ -1,0 +1,178 @@
+---
+title: "Dealing with qualitative traits"
+author: "Guillaume Guénard"
+date: "12/05/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Intrduction
+
+Phylogenetic eigenvector maps (PEM) are descriptors and, as such, it is
+straightforward to use them in any sort of models involving descriptors. For
+predicting qualitative traits, one can use PEM within logistic regression (for
+binary traits), multinomial regression or linear discriminant analysis (for
+multiclass qualitative traits), machine learning methods such as regression
+trees, random forest, artificial neural network, and so on. However, the method
+described by Guénard et al. 2016 to estimate the parameters of the trait
+evolution model does not lend itself to qualitative traits (binary or
+multiclass) and other non-normally distributed traits.
+
+In this research document, we will outline the particular challenges associated
+with estimating qualitative traits and propose avenues of research oriented
+toward estimating the probabilities for species for bearing particular
+qualitative trait values. Although it is possible to propose modifications of
+the original PEM calculation method adapted to use qualitative response
+variables directly, we will hereby focus our efforts at specifying
+transformations to obtain surrogate variables directly suitable to the actual
+evolution model estimation maximum linklihood estimator (MLE). A secondary goal
+of this enquiry is thus to explore the potentiel benefits (in terms of adequacy,
+flexibility, ease of application, and so on) of qualitative traits
+transformation methods. We expect that this investigation will help us identify
+potential methodological gaps that could motivate the adaptation of PEM to the
+estimation of qualitative trait evolution beyond trait transformation.
+
+## Neutral and selective evolution in categorical traits
+
+Traits, be they qualitative or quantitative, are seldom the feat of single genes
+operating in isolation, but come from complex webs of interacting genes. Once a
+particular mutation occurs in a population, it is unlikely to make a new
+qualitative trait manifest itself in a given individual, but will instead make a
+trait showing up with some frequency in the population. Whereas a trait that is
+beneficial to the organisms (on average) will likely increase in frequency on
+the long run, through selective processes, its frequency will eventually
+fluctuate (alongside other modalities of the trait) with the changing
+environment. Also, selection gradient for a given qualitative trait modality may
+also depend on the frequency of other modalities and their interaction with the
+environment (frequency-dependent selection). On the other hand, random mortality
+and reproductive success.
+
+
+
+
+For these reasons, qualitative trait values 
+
+
+The statement that a categorical trait may evolve neutrally may appears as a
+contraduction. Since a given modality of a qualitative trait is either present
+or not in a species, it is tempting to conclude that qualitative trait evolution
+is inherently non-neutral. As a textbook example, a given individual acquire a
+fateful mutation underlying the sudden apparition of a whole new trait (or a
+whole new modality of an esisting trait), enabling it and its descendants to
+thrive and eventually form a new species (or subspecies, ecotype, and so on).
+However, as with most (if not all) textbook cases, this depiction is, perhaps,
+somewhat oversimplistic. For instance, 
+
+Therefore, whereas 
+
+
+
+
+
+
+# Method
+
+The following packages and `R` language code will be needed troughout the
+present research document:
+
+```{r}
+library(adespatial)
+library(magrittr)
+##
+pcoa <- function(x, method, tol=sqrt(.Machine$double.eps)) {
+  Q <- function(x) {diag(x) - matrix(1/x,x,x)}
+  x %>%
+  dist.ldc(Y, method=method) %>%
+  as.matrix %>%
+  {Q(nrow(.)) %*% (-0.5*.^2) %*% Q(ncol(.))} %>%
+  eigen -> out
+  out %<>%
+    {.$vector[,.$values>=tol] %*%
+        diag(sqrt(.$values[.$values>=tol]))}
+  out %>%
+    {list(
+      rownames(x),
+      sprintf("PCoord %d",1:ncol(.))
+    )} -> dimnames(out)
+  out
+}
+
+```
+
+## Data transformation
+
+Qualitative variables are categorical (in the mathematical sense of "involving,
+according with, or considered with respect to specific categories", [see](https://www.merriam-webster.com/dictionary/categorical). In the simplest
+case, a binary trait has two states (eg., the presence of abence of a given
+structure) and can be represented as a single variables taking either the value
+$0$ (eg., when the structure is absent) or $1$ (eg., then the structure is
+present). In the case of a trait involving multiple ($m$) categories, a set of
+$m-1$ such binary (or dummy) variables needs to be involved in order to
+represent all the possibilities (since one modality in the trait can be deducted
+from the absence of all others).
+
+In this research document, we will explore transformations of the 
+
+
+
+
+## Binary traits
+
+In this section, we will explore the simplest case of qualitative traits: binary
+traits. A binary trait is a trait that a species either has or does not have.
+Binary traits can be represented by logistic regression (or other suitable
+methods) using the PEM and, posssibly, other anxiliary traits. 
+
+
+
+
+
+
+
+
+### Generation of a set of binary traits
+
+```{r}
+runif(1000,0,1) %>%
+  {ifelse(.>0.5,0,1)} %>%
+  matrix(ncol=100) -> traits
+traits %>%
+  {list(
+    sprintf("Species %d",1:nrow(.)),
+    sprintf("Trait %d",1:ncol(.))
+  )} -> dimnames(traits)
+traits[,1:9]
+```
+
+## Calculation of the principal components
+
+```{r}
+traits %>%
+  pcoa("jaccard") -> cmp
+cmp
+```
+
+
+
+```{r}
+cmp %>% shapiro.test
+## cmp %>% length %>% rnorm(0,1) %>% shapiro.test
+```
+
+```{r}
+traits %>% {sqrt(./rowSums(.))} -> hel
+## hel[,1:5]
+hel %>% shapiro.test
+hel %>%
+  scale(center=TRUE, scale=FALSE) %>%
+  svd %>%
+  {.$u[,.$d>.Machine$double.eps^0.5]*.$d[.$d>.Machine$double.eps^0.5]} -> pc
+pc[,1:5]
+pc %>%
+  shapiro.test
+pc %>% cor %>% det
+```
+
