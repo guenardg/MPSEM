@@ -139,9 +139,9 @@ void evolveqcalongtree(dgraph* dgr, double* tw, unsigned int ntw,
 void OUdedgecoefs(double* ev, double* lg, unsigned int ne, double alpha,
                   double sigma);
 void simOUprocess(dgraph* dgr, unsigned int sr, unsigned int n, double* out);
-void PEMvar(double* d, int* nd, double* a, double* psi, double* res);
-void PEMweight(double* d, int* nd, double* a, double* psi, double* res);
-void Psquared(double* p, double* o, int* n, double* res);
+void PEMvarC(double* d, int* nd, double* a, double* psi, double* res);
+void PEMweightC(double* d, int* nd, double* a, double* psi, double* res);
+void PsquaredC(double* p, double* o, int* n, double* res);
 
 // Testing functions.
 #ifdef with_testing

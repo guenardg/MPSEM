@@ -629,7 +629,7 @@ void simOUprocess(dgraph* dgr, unsigned int sr, unsigned int n, double* out) {
   return;
 }
 
-void PEMvar(double* d, int* nd, double* a, double* psi, double* res) {
+void PEMvarC(double* d, int* nd, double* a, double* psi, double* res) {
   int i;
   for(i = 0; i < *nd ; i++) {
     if(d[i]!=0.0)
@@ -640,7 +640,7 @@ void PEMvar(double* d, int* nd, double* a, double* psi, double* res) {
   return;
 }
 
-void PEMweight(double* d, int* nd, double* a, double* psi, double* res) {
+void PEMweightC(double* d, int* nd, double* a, double* psi, double* res) {
   int i;
   for(i = 0; i < *nd ; i++) {
     if(d[i]!=0.0)
@@ -652,7 +652,7 @@ void PEMweight(double* d, int* nd, double* a, double* psi, double* res) {
 }
 
 // Calculate the coefficient of prediction (P-squared).
-void Psquared(double* p, double* o, int* n, double* res) {
+void PsquaredC(double* p, double* o, int* n, double* res) {
   int i;
   double mo, s2y, mspe, acc;
   // Calculates mean observed values.
@@ -910,7 +910,7 @@ void PEMbuildC(int* ne, int* nsp, double* Bc, double* m, double* d, double* a,
   BcMat = assignmatrix("Bc",(unsigned int)(*nsp),(unsigned int)(*ne),Bc);
   colcentermeans(&BcMat,&BcMat,m);
   BcWMat = assignmatrix("BcW",(unsigned int)(*nsp),(unsigned int)(*ne),BcW);
-  PEMweight(d,ne,a,psi,w);
+  PEMweightC(d,ne,a,psi,w);
   colweighting(&BcMat,&BcWMat,w);
   return;
 }
@@ -920,7 +920,7 @@ void PEMupdateC(int* ne, int* nsp, double* Bc, double* d, double* a,
   matrix BcMat, BcWMat;
   BcMat = assignmatrix("Bc",(unsigned int)(*nsp),(unsigned int)(*ne),Bc);
   BcWMat = assignmatrix("BcW",(unsigned int)(*nsp),(unsigned int)(*ne),BcW);
-  PEMweight(d,ne,a,psi,w);
+  PEMweightC(d,ne,a,psi,w);
   colweighting(&BcMat,&BcWMat,w);
   return;
 }

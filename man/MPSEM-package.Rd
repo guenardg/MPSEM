@@ -51,6 +51,8 @@ The DESCRIPTION file:
 \packageIndices{MPSEM}
 }
 \examples{
+## To view MPSEM tutorial
+vignette("MPSEM", package="MPSEM")
 
 }
 \references{

@@ -399,17 +399,18 @@ collapse.vertex <- function(x,id) {
 #' @export
 Phylo2DirectedGraph <- function(tp) {
   if(!is.rooted(tp))
-    warning("The tree is not rooted. Direction taken from the first edge in the list.")
+    warning("The tree is not rooted. Direction taken from the first edge.")
   if(is.null(tp$node.label))
     tp$node.label <- paste("n",1:tp$Nnode,sep="")
-  x <- pop.graph(n=tp$Nnode+length(tp$tip.label),label=c(tp$tip.label,tp$node.label),
+  x <- pop.graph(n=tp$Nnode+length(tp$tip.label),
+                 label=c(tp$tip.label,tp$node.label),
                  vertex=list(species=c(rep(TRUE,length(tp$tip.label)),
                                        rep(FALSE,tp$Nnode))))
   x <- add.edge(x,from=tp$edge[,1L],to=tp$edge[,2L],
                 label=c(paste("E",1L:nrow(tp$edge),sep="")),
                 edge=list(distance=tp$edge.length))
   if(!is.null(tp$root.edge))
-    warning("The root edge of the tree has been omitted from the phylogenetic graph.")
+    warning("The root edge has been omitted from the phylogenetic graph.")
   return(x)
 }
 ##

@@ -92,8 +92,8 @@
 #' spatial processes in ecological data. Ecol. Model. 215: 325-336
 #' 
 #' @examples
-### To view MPSEM tutorial
-### vignette("MPSEM", package="MPSEM")  ## To be uncommented...
+#' ## To view MPSEM tutorial
+#' vignette("MPSEM", package="MPSEM")
 #'
 NULL
 ##
