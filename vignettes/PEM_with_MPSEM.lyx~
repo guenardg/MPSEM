@@ -87,11 +87,11 @@ knitr
 \begin_layout Title
 A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM)
  as implemented in R package MPSEM (
-\begin_inset Formula $0.3$
+\begin_inset Formula $0.4$
 \end_inset
 
 -
-\begin_inset Formula $6$
+\begin_inset Formula $1$
 \end_inset
 
 ).

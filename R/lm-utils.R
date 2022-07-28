@@ -33,23 +33,27 @@
 #' 
 #' @name lm-utils
 #' 
+#' @aliases utils
+#' 
 #' @param y A response variable.
 #' @param x Descriptors to be used as auxiliary traits.
 #' @param object A \code{\link{PEM-class}} object.
-#' @param alpha The threshold above which to stop adding variables.
+#' @param alpha The p-value threshold above which the function will stop adding
+#' variables.
 #' 
 #' @details Function \code{\link{lmforwardsequentialsidak}}, performs a forward
 #' stepwise selection of the PEM eigenvectors until the familywise test of
-#' significance of the new variable to be included exceeds the
+#' significance of the new variable to be included exceeds the p-value 
 #' threshold \code{alpha}. The familiwise type I error probability is obtained
 #' using the Holm-Sidak correction of the testwise probabilities, thereby
 #' correcting for type I error rate inflation due to multiple testing.
-#' \code{lmforwardsequentialAICc} carries out forward stepwise selection of the
-#' eigenvectors as long as the candidate model features a lower
-#' sample-size-corrected Akaike information criterion than the previous model.
-#' The final model should be regarded as overfit from the Neyman-Pearson
-#' (\emph{i.e.} frequentist) point of view, but it is the model that minimizes
-#' information loss from the standpoint of information theory.
+#' 
+#' Function \code{lmforwardsequentialAICc} carries out forward stepwise
+#' selection of the eigenvectors as long as the candidate model features a 
+#' sample-size-corrected Akaike information criterion lower than the previous
+#' model. The final model should be regarded as overfitted from the
+#' Neyman-Pearson (\emph{i.e.} frequentist) point of view, but this is the model
+#' that minimizes information loss from the standpoint of information theory.
 #' 
 #' @return An \code{\link{lm}-class} object.
 #' 
@@ -62,10 +66,10 @@
 #' Springer-Verlag. xxvi + 488 pp.
 #' 
 #' Holm, S. 1979. A simple sequentially rejective multiple test procedure.
-#' Scand. J. Statist. 6: 65-70.
+#' Scand. J. Statist. 6: 65-70
 #' 
 #' Sidak, Z. 1967. Rectangular confidence regions for means of multivariate
-#' normal distributions. J. Am. Stat. Ass. 62, 626-633.
+#' normal distributions. J. Am. Stat. Ass. 62, 626-633
 #' 
 #' @importFrom stats lm AIC anova as.formula
 #' 

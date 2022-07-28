@@ -3,6 +3,7 @@
 \docType{class}
 \name{PEM-class}
 \alias{PEM-class}
+\alias{PEM}
 \alias{print.PEM}
 \alias{as.data.frame.PEM}
 \alias{predict.PEM}
@@ -34,9 +35,9 @@ In addition to these standard component, function,
 \code{\link{PEM.fitSimple}} and \code{\link{PEM.forcedSimple}} add the
 following members, which are necessary to make predictions:
 \describe{
-  \item{ S2 }{ The variances of responses (one value for each response).
+  \item{ S2 }{ The variances of response data (one value for each response variable).
   }
-  \item{ y }{ A copy of the responses. }
+  \item{ y }{ A copy of the response data. }
   \item{ opt }{ The list returned by \code{\link{optim}}. }
 }
 The estimated weighting parameters are also given as an edge property.
@@ -79,7 +80,7 @@ details).}
 \item{interval}{The kind of limits (confidence or prediction) to return with
 the predictions; \code{interval="none"}: do not return a confidence interval.}
 
-\item{level}{Probability of the confidence of prediction interval.}
+\item{level}{Probability associated with the confidence of prediction interval.}
 }
 \description{
 Class and methods to handle Phylogenetic Eigenvector Maps (PEM).
@@ -98,7 +99,7 @@ predictions. It must be given species locations with respect to the
 phylogenetic graph (\code{target}), which are provided by function
 \code{\link{getGraphLocations}} and a linear model in the form of an object
 from \code{\link{lm}}. The user must provide auxiliary trait values if
-\code{lmobject} involves such trait.
+\code{lmobject} involves such traits.
 }
 \section{Functions}{
 \itemize{
@@ -111,11 +112,11 @@ from \code{\link{lm}}. The user must provide auxiliary trait values if
 
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
-maps (PEM): a framework to model and predict species traits. Meth. Ecol.
-Evol. 4: 1120--1131
+maps: a framework to model and predict species traits. Methods in Ecology 
+and Evolution 4: 1120-1131
 }
 \seealso{
-\code{\link{PEM.build}}, \code{\link{PEM-class}}
+\code{\link{PEM-functions}}
 }
 \author{
 \packageAuthor{MPSEM}

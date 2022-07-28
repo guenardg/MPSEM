@@ -26,23 +26,26 @@
 ##
 ## **************************************************************************
 ##
-#' Simulates the Evolution of a Quantitative Trait.
+#' Simulate the Evolution of a Quantitative Trait
 #' 
 #' @description Functions to simulate the evolution of a quantitative trait
 #' along a phylogenetic tree inputted as an object of class \sQuote{phylo}
-#' (package \link{ape}) or \code{\link{graph-class}} object.
+#' (package \link{ape}) or a \code{\link{graph-class}} object.
 #' 
 #' @name trait-simulator
+#' 
+#' @aliases trait simulation
 #' 
 #' @param tp A rooted phylogenetic tree of class \sQuote{phylo} (see package
 #' \link{ape}).
 #' @param tw Transition matrix giving the probability that the optimum trait
-#' value changes from one state to another at vertices. All rows must sum to 1.
+#' value changes from one state (row) to another (column) at vertices. 
+#' All rows must sum to 1.
 #' @param anc Ancestral state of a trait (at the root).
 #' @param p Number of variates to generate.
 #' @param root Root node of the tree.
 #' @param d Phylogenetic distances (edge lengths).
-#' @param a Selection rate (\code{\link{OUvar}}) or steepness
+#' @param a Selection rate in function (\code{\link{OUvar}}) or steepness in
 #' (\code{\link{PEMvar}}).
 #' @param theta Adaptive evolution rate, i.e. mean trait shift by natural
 #' selection.
@@ -50,8 +53,8 @@
 #' @param psi Mean evolution rate.
 #' @param opt An index vector of optima at the nodes.
 #' @param x A \code{\link{graph-class}} object.
-#' @param variance Variance function (\code{\link{OUvar}}, \code{\link{PEMvar}},
-#' or any suitable user-defined function).
+#' @param variance Variance function: \code{\link{OUvar}}, \code{\link{PEMvar}},
+#' or any other suitable user-defined function.
 #' @param distance The name of the member of \sQuote{x$edge} where edge lengths
 #' can be found.
 #' @param ... Additional parameters for the specified variance function.
@@ -63,25 +66,29 @@
 #' given the opportunity to change following a multinomial random draw with
 #' transition probabilities given by the rows of matrix \code{tw}. The integers
 #' thus obtained can be used as indices of a vector featuring the actual optimum
-#' trait values corresponding to the simulated selection regimes. The resulting
+#' trait values corresponding to the simulated selection regimes. 
+#'
+#' The resulting
 #' optimum trait values at the nodes are used by \code{\link{TraitOUsimTree}} as
-#' its parameters \code{opt} to simulate trait values at nodes and tips.
+#' its argument \code{opt} to simulate trait values at nodes and tips.
+#' 
 #' Function \code{\link{TraitVarGraphSim}} uses a graph variance function
-#' (either \code{OUvar} or \code{PEMvar}) to reconstruct a covariance matrix
-#' that is used to generate covariates drawn from a multi-normal distribution.
+#' (either \code{OUvar} or \code{PEMvar}) to reconstruct a covariance matrix,
+#' used to generate covariates drawn from a multi-normal distribution.
 #' 
 #' @return Functions \code{\link{EvolveOptimMarkovTree}} and
 #' \code{\link{TraitOUsimTree}} return a matrix whose rows represent the
 #' vertices (nodes and tips) of the phylogenetic tree and whose columns stand
-#' for the \code{n} different trials the function was asked to perform. For
-#' \code{EvolveQTraitTree}, the elements of the matrix are integers,
+#' for the \code{n} different trials the function was asked to perform. 
+#' 
+#' For \code{EvolveQTraitTree}, the elements of the matrix are integers,
 #' representing the selection regimes prevailing at the nodes and tips, whereas
 #' for \code{\link{TraitOUsimTree}}, the elements are simulated quantitative
 #' trait values at the nodes and tips. These functions are implemented in C
 #' language and therefore run swiftly even for large (10000+ species) trees.
 #' 
-#' Function \code{\link{TraitVarGraphSim}} returns \code{p} phylogenetic signals
-#' and is implemented using a rotation of a matrix of standard normal random
+#' Function \code{\link{TraitVarGraphSim}} returns \code{p} phylogenetic signals.
+#' It is implemented using a rotation of a matrix of standard normal random
 #' (mean=0, variance=1) deviates. The rotation matrix is itself obtained by
 #' Choleski factorization of the trait covariance matrix expected for a given
 #' set of trees, variance function, and variance function parameters.
@@ -91,11 +98,11 @@
 #' 
 #' @references
 #' Butler, M. A. & King, A. A. 2004. Phylogenetic comparative analysis: a
-#' modeling approach for adaptive evolution. Am. Nat. 164: 683-695.
+#' modeling approach for adaptive evolution. American Naturalist 164: 683-695
 #' 
 #' Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
-#' maps (PEM): a framework to model and predict species traits. Meth. Ecol.
-#' Evol. 4: 1120--1131
+#' maps: a framework to model and predict species traits.  Methods in Ecology 
+#' and Evolution 4: 1120-1131
 #' 
 #' @importFrom stats rnorm
 #' 

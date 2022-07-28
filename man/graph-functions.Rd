@@ -9,7 +9,7 @@
 \alias{rm.vertex}
 \alias{collapse.vertex}
 \alias{Phylo2DirectedGraph}
-\title{Graph Manipulation Functions}
+\title{MPSEM graph Manipulation Functions}
 \usage{
 pop.graph(n, vertex = list(), label = NULL)
 
@@ -26,7 +26,7 @@ collapse.vertex(x, id)
 Phylo2DirectedGraph(tp)
 }
 \arguments{
-\item{n}{The number of vertex to populate a new graph (\code{pop.graph}) or
+\item{n}{The number of vertices to populate a new graph (\code{pop.graph}) or
 to add to an existing graph (\code{add.vertex}).}
 
 \item{vertex}{A list of vertex properties.}
@@ -35,9 +35,9 @@ to add to an existing graph (\code{add.vertex}).}
 
 \item{x}{A \code{graph-class} object.}
 
-\item{from}{The origins of the edge to be added (vertex labels or indices).}
+\item{from}{The origins of the edges to be added (vertex labels or indices).}
 
-\item{to}{The destinations of the edge to be added (vertex labels or
+\item{to}{The destinations of the edges to be added (vertex labels or
 indices).}
 
 \item{edge}{A list of edge properties.}
@@ -48,19 +48,19 @@ indices).}
 \code{\link{ape-package}}.}
 }
 \value{
-A \code{\link{graph-class}} object. Objects returned by
-\code{\link{Phylo2DirectedGraph}} have a \code{\link{numeric}} edge property
-called \sQuote{distance} featuring branch lengths and a \code{link{logical}}
-vertex property called \sQuote{species} specifying whether a vertex is a tree
-tip or an internal node.
+The function returns a \code{\link{graph-class}} object. Objects
+returned by \code{\link{Phylo2DirectedGraph}} have a \code{\link{numeric}}
+edge property called \sQuote{distance} featuring branch lengths, and a
+\code{link{logical}} vertex property called \sQuote{species} specifying
+whether a vertex is a tree tip or an internal node.
 }
 \description{
 A set of primitive functions for creating and munipulating
-graphs.
+MPSEM graphs.
 }
 \details{
 A new graph can be populated with \code{n} vertices using function
-\code{pop.graph} and vertices can be added later with function
+\code{pop.graph}. Additional vertices can be added later with function
 \code{add.vertex}. The graphs so created contain no edges; the latter are
 added using function \code{add.edge}. Vertices and edges are removed using
 functions \code{rm.vertex} and \code{rm.edge}, respectively.
@@ -69,10 +69,10 @@ Function \code{collapse.vertex} allows one to remove a vertex while
 reestablishing the connections between the vertices located above and below
 that vertex using a new set of edges.
 
-Function \code{Phylo2DirectedGraph} uses the graph functions to convert a
-rooted phylogenetic tree of class \sQuote{phylo} (see
+Function \code{Phylo2DirectedGraph} uses the MPSEM graph functions to convert
+a rooted phylogenetic tree of class \sQuote{phylo} (see
 \code{\link{ape-package}}) to a \code{\link{graph-class}} object. It recycles
-tip labels and creates default node labels, if they were absent from the
+tip labels. It also creates default node labels if they were absent from the
 \sQuote{phylo} object, and uses them as vertex labels. The resulting acyclic
 graph can then be edited to represent cases that do not have a tree topology.
 }
@@ -149,14 +149,14 @@ if(require(ape)) {
 }
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
-maps (PEM): a framework to model and predict species traits. Meth. Ecol.
-Evol. 4: 1120--1131
+maps: a framework to model and predict species traits. Methods in Ecology 
+and Evolution 4: 1120-1131
 
 Makarenkov, V., Legendre, L. & Desdevise, Y. 2004. Modelling phylogenetic
-relationships using reticulated networks. Zool. Scr. 33: 89--96
+relationships using reticulated networks. Zoologica Scripta 33: 89-96
 
 Blanchet, F. G., Legendre, P. & Borcard, D. 2008. Modelling directional
-spatial processes in ecological data. Ecol. Model. 215: 325--336
+spatial processes in ecological data. Ecological Modelling 215: 325-336
 }
 \seealso{
 \code{\link{graph-class}}.

@@ -3,6 +3,7 @@
 \docType{class}
 \name{graph-class}
 \alias{graph-class}
+\alias{graph}
 \alias{print.graph}
 \title{Class and Method for Directed Graphs}
 \format{
@@ -11,7 +12,7 @@ A \code{graph-class} object contains:
   \item{ edge }{ A list whose first two unnamed members are the indices of
   the origin and destination vertices. Additional members must be named and
   are additional edge properties (e.g. length). }
-  \item{ vertex }{ A list that optionally contain vertex properties, if any
+  \item{ vertex }{ A list that optionally contains vertex properties, if any
   (or an empty list if none). }
 }
 }
@@ -25,7 +26,7 @@ A \code{graph-class} object contains:
 ignored.}
 }
 \description{
-Class and methods to handle graphs.
+Class and methods to handle MPSEM graphs.
 }
 \details{
 Prints user-relevant information about the graph: number of edges
@@ -34,16 +35,16 @@ properties.
 }
 \section{Functions}{
 \itemize{
-\item \code{print.graph}: Print method for graph-class objects
+\item \code{print.graph}: Print method for MPSEM graph-class objects
 }}
 
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
-maps (PEM): a framework to model and predict species traits. Meth. Ecol.
-Evol. 4: 1120--1131
+maps: a framework to model and predict species traits. Methods in Ecology 
+and Evolution 4: 1120-1131
 }
 \seealso{
-\code{\link{PEM.build}}, \code{\link{PEM-class}}
+\code{\link{graph-functions}}.
 }
 \author{
 \packageAuthor{MPSEM}

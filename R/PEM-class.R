@@ -33,6 +33,8 @@
 #' @docType class
 #' 
 #' @name PEM-class
+#' 
+#' @aliases PEM
 #'  
 #' @param x A \code{\link{PEM-class}} object containing a Phylogenetic
 #' Eigenvector Map.
@@ -45,7 +47,7 @@
 #' @param newdata Auxiliary trait values.
 #' @param interval The kind of limits (confidence or prediction) to return with
 #' the predictions; \code{interval="none"}: do not return a confidence interval.
-#' @param level Probability of the confidence of prediction interval.
+#' @param level Probability associated with the confidence of prediction interval.
 #' @param ... Additional parameters to be passed to the method. Currently
 #' ignored.
 #' 
@@ -62,7 +64,7 @@
 #' phylogenetic graph (\code{target}), which are provided by function
 #' \code{\link{getGraphLocations}} and a linear model in the form of an object
 #' from \code{\link{lm}}. The user must provide auxiliary trait values if
-#' \code{lmobject} involves such trait.
+#' \code{lmobject} involves such traits.
 #' 
 #' @format A \code{\link{PEM-class}} object contains:
 #' \describe{
@@ -90,9 +92,9 @@
 #' \code{\link{PEM.fitSimple}} and \code{\link{PEM.forcedSimple}} add the
 #' following members, which are necessary to make predictions:
 #' \describe{
-#'   \item{ S2 }{ The variances of responses (one value for each response).
+#'   \item{ S2 }{ The variances of response data (one value for each response variable).
 #'   }
-#'   \item{ y }{ A copy of the responses. }
+#'   \item{ y }{ A copy of the response data. }
 #'   \item{ opt }{ The list returned by \code{\link{optim}}. }
 #' }
 #' The estimated weighting parameters are also given as an edge property.
@@ -103,10 +105,10 @@
 #' 
 #' @references
 #' Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
-#' maps (PEM): a framework to model and predict species traits. Meth. Ecol.
-#' Evol. 4: 1120--1131
+#' maps: a framework to model and predict species traits. Methods in Ecology 
+#' and Evolution 4: 1120-1131
 #' 
-#' @seealso \code{\link{PEM.build}}, \code{\link{PEM-class}}
+#' @seealso \code{\link{PEM-functions}}
 #' 
 #' @importFrom stats qt
 #' 

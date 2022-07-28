@@ -28,11 +28,13 @@
 ##
 #' Class and Method for Directed Graphs
 #' 
-#' @description Class and methods to handle graphs.
+#' @description Class and methods to handle MPSEM graphs.
 #' 
 #' @docType class
 #' 
 #' @name graph-class
+#' 
+#' @aliases graph
 #' 
 #' @param x An object of \code{\link{graph-class}}.
 #' @param ... Additional parameters to be passed to the method. Currently
@@ -47,7 +49,7 @@
 #'   \item{ edge }{ A list whose first two unnamed members are the indices of
 #'   the origin and destination vertices. Additional members must be named and
 #'   are additional edge properties (e.g. length). }
-#'   \item{ vertex }{ A list that optionally contain vertex properties, if any
+#'   \item{ vertex }{ A list that optionally contains vertex properties, if any
 #'   (or an empty list if none). }
 #' }
 #' 
@@ -56,16 +58,16 @@
 #' 
 #' @references
 #' Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
-#' maps (PEM): a framework to model and predict species traits. Meth. Ecol.
-#' Evol. 4: 1120--1131
+#' maps: a framework to model and predict species traits. Methods in Ecology 
+#' and Evolution 4: 1120-1131
 #' 
-#' @seealso \code{\link{PEM.build}}, \code{\link{PEM-class}}
+#' @seealso \code{\link{graph-functions}}.
 #' 
 NULL
 #' 
 #' @describeIn graph-class
 #' 
-#' Print method for graph-class objects
+#' Print method for MPSEM graph-class objects
 #' 
 #' @export
 print.graph <- function(x, ...) {

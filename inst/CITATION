@@ -1,0 +1,19 @@
+bibentry(bibtype = "Article",
+  title        = "Phylogenetic eigenvector maps: a framework to model and predict species traits.",
+  author       = c(person(given = "Guillaume",
+                          family = "Gu\\'{e}nard",
+                          email = "guillaume.guenard@gmail.com"),
+                   person(given = "Pierre",
+                          family = "Legendre",
+                          email = "pierre.legendre@umontreal.ca"),
+                   person(given = "Pedro",
+                          family = "Peres-Neto",
+                          email = "pedro.peres-neto@concordia.ca")),
+  journal      = "Methods in Ecology and Evolution",
+  year         = "2013",
+  volume       = "4",
+  pages        = "1120-1131",
+  doi          = "10.1111/2041-210X.12111",
+  header       = "To cite MPSEM in publications use:"
+)
+
