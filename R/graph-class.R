@@ -50,7 +50,7 @@
 #'   the origin and destination vertices. Additional members must be named and
 #'   are additional edge properties (e.g. length). }
 #'   \item{ vertex }{ A list that optionally contains vertex properties, if any
-#'   (or an empty list if none). }
+#'   (or an empty \code{\link{list}} if none). }
 #' }
 #' 
 #' @author \packageAuthor{MPSEM}
@@ -67,7 +67,11 @@ NULL
 #' 
 #' @describeIn graph-class
 #' 
-#' Print method for MPSEM graph-class objects
+#' Print Graph
+#' 
+#' A print method for graph-class objects.
+#' 
+#' @method print graph
 #' 
 #' @export
 print.graph <- function(x, ...) {

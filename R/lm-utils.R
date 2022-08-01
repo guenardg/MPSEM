@@ -36,7 +36,8 @@
 #' @aliases utils
 #' 
 #' @param y A response variable.
-#' @param x Descriptors to be used as auxiliary traits.
+#' @param x Descriptors (numeric of \code{\link{factor}}) to be used as
+#' auxiliary traits.
 #' @param object A \code{\link{PEM-class}} object.
 #' @param alpha The p-value threshold above which the function will stop adding
 #' variables.
@@ -77,6 +78,8 @@ NULL
 #' 
 #' @describeIn lm-utils
 #' 
+#' Forward Stepwise Regression AICc
+#' 
 #' Forward stepwise variable addition using the sample-size-corrected Akaike
 #' Information Criterion.
 #' 
@@ -109,6 +112,8 @@ lmforwardsequentialAICc <- function (y, x, object) {
 }
 #' 
 #' @describeIn lm-utils
+#' 
+#' Forward Stepwise Regression Sidak
 #' 
 #' Forward stepwise variable addition using a Sidak multiple testing
 #' corrected alpha error threshold as the stopping criterion.

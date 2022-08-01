@@ -78,19 +78,35 @@ graph can then be edited to represent cases that do not have a tree topology.
 }
 \section{Functions}{
 \itemize{
-\item \code{pop.graph}: Creates a graph and populates it with vertices.
+\item \code{pop.graph}: Create Graph
 
-\item \code{add.vertex}: Adds vertices to an existing graph.
+Create a graph and populates it with vertices.
 
-\item \code{add.edge}: Adds edges to a graph.
+\item \code{add.vertex}: Add Vertices
 
-\item \code{rm.edge}: Removes edges from a graph.
+Add vertices to an existing graph.
 
-\item \code{rm.vertex}: Removes vertices from a graph.
+\item \code{add.edge}: Add Edges
 
-\item \code{collapse.vertex}: Removes vertices from a graph while also removing their associated edges.
+Add edges to a graph.
 
-\item \code{Phylo2DirectedGraph}: Transforms a phylogenetic tree into a directed graph.
+\item \code{rm.edge}: Remove Edges
+
+Remove edges from a graph.
+
+\item \code{rm.vertex}: Remove Vertices
+
+Remove vertices from a graph.
+
+\item \code{collapse.vertex}: Collapse Vertices
+
+Remove vertices from a graph: remove vertices together with their associated
+edges.
+
+\item \code{Phylo2DirectedGraph}: Phylogenetic Tree Conversion
+
+Create a new \code{\link{graph-class}} object from a phylo-class object
+(phylogenetic tree).
 }}
 
 \examples{

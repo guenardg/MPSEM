@@ -14,7 +14,8 @@ lmforwardsequentialsidak(y, x, object, alpha = 0.05)
 \arguments{
 \item{y}{A response variable.}
 
-\item{x}{Descriptors to be used as auxiliary traits.}
+\item{x}{Descriptors (numeric of \code{\link{factor}}) to be used as
+auxiliary traits.}
 
 \item{object}{A \code{\link{PEM-class}} object.}
 
@@ -45,10 +46,14 @@ that minimizes information loss from the standpoint of information theory.
 }
 \section{Functions}{
 \itemize{
-\item \code{lmforwardsequentialAICc}: Forward stepwise variable addition using the sample-size-corrected Akaike
+\item \code{lmforwardsequentialAICc}: Forward Stepwise Regression AICc
+
+Forward stepwise variable addition using the sample-size-corrected Akaike
 Information Criterion.
 
-\item \code{lmforwardsequentialsidak}: Forward stepwise variable addition using a Sidak multiple testing
+\item \code{lmforwardsequentialsidak}: Forward Stepwise Regression Sidak
+
+Forward stepwise variable addition using a Sidak multiple testing
 corrected alpha error threshold as the stopping criterion.
 }}
 

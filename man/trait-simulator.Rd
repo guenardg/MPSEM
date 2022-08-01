@@ -102,15 +102,34 @@ used to generate covariates drawn from a multi-normal distribution.
 }
 \section{Functions}{
 \itemize{
-\item \code{EvolveOptimMarkovTree}: Simulates the evolution of trait optima along a phylogeny.
+\item \code{EvolveOptimMarkovTree}: Trait Optima Simulator
 
-\item \code{TraitOUsimTree}: Simulates the evolution of trait values along a phylogeny.
+Simulates the evolution of trait optima along a phylogeny as a Markov
+process.
 
-\item \code{OUvar}: Describe here...
+\item \code{TraitOUsimTree}: Trait Value Simulator
 
-\item \code{PEMvar}: Describe here...
+Simulates the evolution of trait values along a phylogeny as a
+Ornstein–Uhlenbeck process.
 
-\item \code{TraitVarGraphSim}: Describe here...
+\item \code{OUvar}: Ornstein–Uhlenbeck Variance Calculator
+
+Calculates the expected covariance matrix for a trait evolving following an
+Ornstein–Uhlenbeck process. This function is meant to be used with function
+\code{TraitVarGraphSim}.
+
+\item \code{PEMvar}: Phylogenetic Eigenvector Maps Variance Calculator
+
+Calculates the covariance on the basis of the covariance model (power
+function) associated used in calculating Phylogenetic Eigenvector Maps. This
+function is meant to be used with function \code{TraitVarGraphSim}.
+
+\item \code{TraitVarGraphSim}: Covariance-based Trait Evolution Simulator.
+
+Simulates trait evolution as covariates drawn from a multi-normal
+distribution whose covariance is estimated using an external function
+(functions \code{OUvar}, \code{PEMvar} provided with the package or any
+user-provided function).
 }}
 
 \examples{
@@ -166,11 +185,15 @@ DisplayTreeEvol <- function(tp,mvalue) {
   abline(v=0)
 }
 
-## Recursively displays the simulated traits.
+## Iteratively displays the simulated traits.
+## Left-click on the display area to go to the next plot.
+## To terminate: right-click (WIndows, X11), esc key (Mac), or hit the
+## "finish" button (RStudio).
+
 for(i in 1:10) {
   DisplayTreeEvol(tree2,y4[i,])
   if(is.null(locator(1)))
-    break                  ## Stops recursive display on a mouse right-click.
+    break  ## Terminate: 
 }
 
 }

@@ -51,17 +51,17 @@
 #' @param ... Additional parameters to be passed to the method. Currently
 #' ignored.
 #' 
-#' @details The \code{\link{print}} method provides the number of eigenvectors,
-#' the number of observations these vectors are spanning, and their associated
+#' @details The \code{print.PEM} method provides the number of eigenvectors, the
+#' number of observations these vectors are spanning, and their associated
 #' eigenvalues.
 #' 
-#' The \code{\link{as.data.frame}} method extracts the eigenvectors from the
+#' The \code{as.data.frame.PEM} method extracts the eigenvectors from the
 #' object and allows one to use \code{\link{PEM-class}} objects as \code{data}
 #' parameter in function such as \code{\link{lm}} and \code{\link{glm}}.
 #' 
-#' The \code{\link{predict}} object is a barebone interface meant to make
-#' predictions. It must be given species locations with respect to the
-#' phylogenetic graph (\code{target}), which are provided by function
+#' The \code{predict.PEM} method is a barebone interface to make predictions. It
+#' must be given species locations with respect to the phylogenetic graph
+#' (\code{target}), which are provided by function
 #' \code{\link{getGraphLocations}} and a linear model in the form of an object
 #' from \code{\link{lm}}. The user must provide auxiliary trait values if
 #' \code{lmobject} involves such traits.
@@ -70,8 +70,8 @@
 #' \describe{
 #'   \item{ x }{ The \code{\link{graph-class}} object that was used to
 #'   build the PEM (see \code{\link{PEM.build}}). }
-#'   \item{ sp }{ A \code{\link{logical}} vector specifying which vertex is
-#'   a tip. }
+#'   \item{ sp }{ A \code{\link{logical}} vector specifying which of the
+#'   vertices are tips. }
 #'   \item{ B }{ The influence matrix for those vertices that are tips. }
 #'   \item{ ne }{ The number of edges. }
 #'   \item{ nsp }{ The number of species (tips). }
@@ -116,7 +116,11 @@ NULL
 #' 
 #' @describeIn PEM-class
 #' 
-#' Print method for PEM-class objects
+#' Print PEM-class
+#' 
+#' A print method for PEM-class objects.
+#' 
+#' @method print PEM
 #' 
 #' @export
 print.PEM <- function(x, ...) {
@@ -133,7 +137,11 @@ print.PEM <- function(x, ...) {
 #' 
 #' @describeIn PEM-class
 #' 
-#' Method \code{as.data.frame} for PEM-class objects
+#' Method \code{as.data.frame} for PEM-class Objects
+#' 
+#' A method to extract the phylogenetic eigenvectors from a PEM-class object.
+#' 
+#' @method as.data.frame PEM
 #' 
 #' @export
 as.data.frame.PEM <- function(x, row.names = NULL, optional = FALSE, ...) {
@@ -142,7 +150,12 @@ as.data.frame.PEM <- function(x, row.names = NULL, optional = FALSE, ...) {
 #' 
 #' @describeIn PEM-class
 #' 
-#' Predict method for PEM-class objects
+#' Predict Method for PEM-class Objects
+#' 
+#' A predict method to predict species trait values using Phylogenetic
+#' Eigenvector Maps.
+#' 
+#' @method predict PEM
 #' 
 #' @export
 predict.PEM <- function (object, targets, lmobject, newdata,
@@ -183,4 +196,4 @@ predict.PEM <- function (object, targets, lmobject, newdata,
               upper = pred + S * qt(0.5 * (1 - level), lmobject$df,
                                     lower.tail = FALSE)))
 }
-##
+#' 

@@ -159,11 +159,15 @@
 #'   abline(v=0)
 #' }
 #' 
-#' ## Recursively displays the simulated traits.
+#' ## Iteratively displays the simulated traits.
+#' ## Left-click on the display area to go to the next plot.
+#' ## To terminate: right-click (WIndows, X11), esc key (Mac), or hit the
+#' ## "finish" button (RStudio).
+#' 
 #' for(i in 1:10) {
 #'   DisplayTreeEvol(tree2,y4[i,])
 #'   if(is.null(locator(1)))
-#'     break                  ## Stops recursive display on a mouse right-click.
+#'     break  ## Terminate: 
 #' }
 #' 
 #' @useDynLib MPSEM, .registration = TRUE
@@ -172,7 +176,10 @@ NULL
 #' 
 #' @describeIn trait-simulator
 #' 
-#' Simulates the evolution of trait optima along a phylogeny.
+#' Trait Optima Simulator
+#' 
+#' Simulates the evolution of trait optima along a phylogeny as a Markov
+#' process.
 #' 
 #' @export
 EvolveOptimMarkovTree <- function(tp, tw, anc, p=1, root=tp$edge[1,1]) {
@@ -207,7 +214,10 @@ EvolveOptimMarkovTree <- function(tp, tw, anc, p=1, root=tp$edge[1,1]) {
 #' 
 #' @describeIn trait-simulator
 #' 
-#' Simulates the evolution of trait values along a phylogeny.
+#' Trait Value Simulator
+#' 
+#' Simulates the evolution of trait values along a phylogeny as a
+#' Ornstein–Uhlenbeck process.
 #' 
 #' @export
 TraitOUsimTree <- function(tp, a, sigma, opt, p=1, root=tp$edge[1,1]) {
@@ -239,7 +249,11 @@ TraitOUsimTree <- function(tp, a, sigma, opt, p=1, root=tp$edge[1,1]) {
 #' 
 #' @describeIn trait-simulator
 #' 
-#' Describe here...
+#' Ornstein–Uhlenbeck Variance Calculator
+#' 
+#' Calculates the expected covariance matrix for a trait evolving following an
+#' Ornstein–Uhlenbeck process. This function is meant to be used with function
+#' \code{TraitVarGraphSim}.
 #' 
 #' @export
 OUvar <- function(d, a=0, theta=1, sigma=1) {
@@ -257,7 +271,11 @@ OUvar <- function(d, a=0, theta=1, sigma=1) {
 #' 
 #' @describeIn trait-simulator
 #' 
-#' Describe here...
+#' Phylogenetic Eigenvector Maps Variance Calculator
+#' 
+#' Calculates the covariance on the basis of the covariance model (power
+#' function) associated used in calculating Phylogenetic Eigenvector Maps. This
+#' function is meant to be used with function \code{TraitVarGraphSim}.
 #' 
 #' @export
 PEMvar <- function(d, a=0, psi=1) {
@@ -274,7 +292,12 @@ PEMvar <- function(d, a=0, psi=1) {
 #' 
 #' @describeIn trait-simulator
 #' 
-#' Describe here...
+#' Covariance-based Trait Evolution Simulator.
+#' 
+#' Simulates trait evolution as covariates drawn from a multi-normal
+#' distribution whose covariance is estimated using an external function
+#' (functions \code{OUvar}, \code{PEMvar} provided with the package or any
+#' user-provided function).
 #' 
 #' @export
 TraitVarGraphSim <- function(x, variance, distance="distance", p=1, ...) {

@@ -144,7 +144,9 @@ NULL
 #' 
 #' @describeIn graph-functions
 #' 
-#' Creates a graph and populates it with vertices.
+#' Create Graph
+#' 
+#' Create a graph and populates it with vertices.
 #' 
 #' @export
 pop.graph <- function(n, vertex=list(), label=NULL) {
@@ -175,7 +177,9 @@ pop.graph <- function(n, vertex=list(), label=NULL) {
 #' 
 #' @describeIn graph-functions
 #' 
-#' Adds vertices to an existing graph.
+#' Add Vertices
+#' 
+#' Add vertices to an existing graph.
 #' 
 #' @export
 add.vertex <- function(x,n,vertex=list(),label=NULL) {
@@ -211,7 +215,9 @@ add.vertex <- function(x,n,vertex=list(),label=NULL) {
 #' 
 #' @describeIn graph-functions
 #' 
-#' Adds edges to a graph.
+#' Add Edges
+#' 
+#' Add edges to a graph.
 #' 
 #' @export
 add.edge <- function(x,from,to,edge=list(),label=NULL) {
@@ -279,7 +285,9 @@ add.edge <- function(x,from,to,edge=list(),label=NULL) {
 #' 
 #' @describeIn graph-functions
 #' 
-#' Removes edges from a graph.
+#' Remove Edges
+#' 
+#' Remove edges from a graph.
 #' 
 #' @export
 rm.edge <- function(x,id) {
@@ -304,7 +312,9 @@ rm.edge <- function(x,id) {
 #' 
 #' @describeIn graph-functions
 #' 
-#' Removes vertices from a graph.
+#' Remove Vertices
+#' 
+#' Remove vertices from a graph.
 #' 
 #' @export
 rm.vertex <- function(x,id) {
@@ -335,7 +345,10 @@ rm.vertex <- function(x,id) {
 #' 
 #' @describeIn graph-functions
 #' 
-#' Removes vertices from a graph while also removing their associated edges.
+#' Collapse Vertices
+#' 
+#' Remove vertices from a graph: remove vertices together with their associated
+#' edges.
 #' 
 #' @export
 collapse.vertex <- function(x,id) {
@@ -394,7 +407,10 @@ collapse.vertex <- function(x,id) {
 #' 
 #' @describeIn graph-functions
 #' 
-#' Transforms a phylogenetic tree into a directed graph.
+#' Phylogenetic Tree Conversion
+#' 
+#' Create a new \code{\link{graph-class}} object from a phylo-class object
+#' (phylogenetic tree).
 #' 
 #' @export
 Phylo2DirectedGraph <- function(tp) {

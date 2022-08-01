@@ -80,6 +80,33 @@ with. Therefore I will use _edge_ over _branches_ and _vertex_ over _root_,
 _node_ or _tip_; safe in cases where I want to be specific about what a vertex
 represents.
 
+> ### The Phylogenetic eigenvector maps (**PEM**) expression
+> 
+> Statistical maps are a type of geographic map representing the values or
+> states of a variable across space
+> <https://encyclopedia2.thefreedictionary.com/statistical+map).
+> 
+> In a paper entitled "The interpretation of statistical maps", [@Moran1948]
+> described tests of significance of the spatial relationships among values of
+> qualitative variables on statistical maps.
+> 
+> "Moran's eigenvector maps" (**MEM**), an expression coined by @Dray2006,
+> describes the variation of spatial eigenvectors whose eigenvalues are
+> proportional to Moran's I spatial autocorrelation statistics [@Moran1950] of
+> the corresponding eigenvectors. Spatial eigenvectors are mathematical
+> constructs that describe the variation of quantities across space (or time) at
+> different spatial scales. They were originally called Principal Coordinates of
+> Neighbour Matrices by @Borcard2002.
+> 
+> Phylogenetic eigenvector maps (**PEM**) [@Diniz2012; @Guenard2013] are sets of
+> eigenfunctions describing the structure of a phylogenetic graph, which
+> represents either a Darwinian phylogenetic tree or a reticulated tree, i.e., a
+> phylogenetic tree with reticulations. The various eigenvectors describe the
+> variation across a phylogeny at different phylogenetic scales.
+> 
+> Contrary to MEM, the eigenvalues in PEM are not proportional to Moran's I
+> autocorrelation coefficients of the corresponding eigenvectors.
+
 The **PEM** work flow consists in
 
 1) calculating the influence matrix of the graph,
@@ -214,19 +241,17 @@ drop.tip(
 ) -> perissodactyla.tree.train
 ```
 
-# Calculating PEM
+# Calculating **PEM**
 
 ## Edge weighting function
 
 As previously announced, I use the vocabulary of the graph theory when
-describing PEM: a tree is a (directed) graph, a branch is an edge, and the root,
-nodes, and tips are vertices. PEM allows one to specify a model of trait
-evolution along the edges of the tree. That model is given as a function having
-edge lengths as its first argument, followed by an arbitrary number of
-parameters provided as named arguments. Although PEM allows one to specify
-different parameter sets for different parts of the phylogeny as well as
-arbitrary weighting functions, the current implementation of **MPSEM** (0.4-2)
-only supports the following power function:
+describing **PEM**: a tree is a (directed) graph, a branch is an edge, and the
+root, nodes, and tips are vertices. **PEM** allows one to specify a model of
+trait evolution along the edges of the tree. The trait evolution model is a
+power function of the edge lengths, with parameters $a$ and $\psi$ describing
+the shape of the relationship between the edge lengths and trait evolution rate:
+
 $$
 w_{a,\psi}(\phi_{j})=
 \begin{cases}
@@ -234,7 +259,7 @@ w_{a,\psi}(\phi_{j})=
 0 & \phi_{j}=0,
 \end{cases}
 $$
-where a is the steepness parameter describing how abrupt the changes in trait
+where $a$ is the steepness parameter describing how abrupt the changes in trait
 values occur with time following branching, $\psi$ is the evolution rate of the
 trait, and $\phi_{j}$ is the length of edge $j$ [@Guenard2013].
 
@@ -284,8 +309,8 @@ figCounter$getCaption("edgeWeighting")
 As the steepness parameter increases, the weight assigned to a given edge
 increases more sharply with respect to the phylogenetic distance (or
 evolutionary time; Fig. `r figCounter$getNumber("edgeWeighting")`). In the
-context of PEM, the edge weight represent the relative rate of evolution of the
-trait; the greater the edge weight, the greater the trait change along that
+context of **PEM**, the edge weight represent the relative rate of evolution of
+the trait; the greater the edge weight, the greater the trait change along that
 edge. When $a=0$, trait evolution is neutral and therefore proceeds by random
 walk along edges. When $a=1$, edge weights no longer increase as a function of
 edge lengths. That situation corresponds to the scenario in which trait
@@ -293,10 +318,16 @@ evolution is driven by the strongest possible natural selection: following a
 speciation event, trait either change abruptly (directional selection) at the
 vertex or do not change at all (stabilizing selection).
 
+Also, the shape parameters may differ for different parts of the phylogenetic
+tree or network. For instance, the trait may have evolved neutrally at a steady
+rate from the base of a tree up to a certain node, and then, may have been
+subjected to different levels of selection pressure and various evolution rate
+from some of the nodes towards their descendent tips.
+
 ## Phylogenetic graph
 
-The first step to build a PEM is to convert the phylogenetic tree. The is done
-by giving the tree to function `Phylo2DirectedGraph()` as follows:
+The first step to build a **PEM** is to convert the phylogenetic tree. The is
+done by giving the tree to function `Phylo2DirectedGraph()` as follows:
 
 ```{r convert_to_graph}
 Phylo2DirectedGraph(
@@ -307,29 +338,39 @@ Phylo2DirectedGraph(
 Here's a snipet showing how the graph container used by **MPSEM** stores graph
 information:
 
-```{r graph_storage,echo=FALSE,size="tiny"}
+```{r graph_storage,echo=FALSE}
 str(perissodactyla.pgraph)
 ```
 
-It is a list of two elements themselves being two lists. Element `$edge` is a
-list containing information about the edges of the graph, namely the indices of
-their origin and destination vertices (the two first unnamed elements) and an
-arbitrary number of supplementary elements storing other edge properties. In the
-present case, a numeric vector created by `Phylo2DirectedGraph()` and called
-`$distance` stores the phylogenetic distances ($\phi_{j}$), which correspond to
-the branch lengths of `perissodactyla.tree`. The element `$vertex` is a list
-containing an arbitrary number of elements storing vertex properties. In the
-present case, a logical vector created by `Phylo2DirectedGraph()` and called
-`$species` stores whether a given vertex represents a species (i.e., it is a
-tip). In addition to edge and vertex information, the container stores other
-useful information in the form of attributes: `ev` stores the number of edges
-and vertices whereas `elabel` and `vlabel` store edge and vertex labels,
-respectively.
+This list contains two main elements, `$edge` and `$vertex`, plus additional
+information. `$edge` and `$vertex` elements each contain a list of sub-elements:
+
+* Element `$edge` is a list containing information about the edges of the graph,
+  namely the indices of their origin and destination vertices (the two first
+  unnamed elements) and an arbitrary number of supplementary elements storing
+  other edge properties. In the present case, a numeric vector created by
+  `Phylo2DirectedGraph()` and called `$distance` stores the phylogenetic
+  distances ($\phi_{j}$), which, in this example, correspond to the branch
+  lengths of `perissodactyla.tree`.
+
+* The element `$vertex` is a list containing an arbitrary number of elements
+  storing vertex properties. In the present case, a logical vector created by
+  `Phylo2DirectedGraph()` and called `$species` stores whether a given vertex
+  represents a species (_i.e._, it is a tip) or not (_i.e._, it is a node).
+
+* In addition to edge and vertex information, the container stores other useful
+  information in the form of attributes:
+
+  * `ev` stores the number of edges and vertices.
+
+  * `elabel` stores the edge labels.
+  
+  * `vlabel` stores the vertex labels.
 
 ## Building the eigenvector map
 
-In **MPSEM**, PEM are build using function `PEM.build()`. As an example, let us
-assume that the steepness and evolution rate are $a=0.25$ and $\psi=2$ among
+In **MPSEM**, **PEM** are build using function `PEM.build()`. As an example, let
+us assume that the steepness and evolution rate are $a=0.25$ and $\psi=2$ among
 genus _Equus_, $a=0.8$ and $\psi=0.5$ among genus _Tapirus_, and $a=0$ and
 $\psi=1$ from the root of the tree up to the vertex where the two latter genera
 begin as well as among the other genera. The following figure will help us
@@ -371,7 +412,7 @@ steepness[9L:13] <- 0.8
 evol_rate[9L:13] <- 0.5
 ```
 
-The PEM is obtained as follows:
+The **PEM** is obtained as follows:
 
 ```{r calculate_PEM}
 PEM.build(
@@ -390,27 +431,30 @@ well as the user-specified steepness and evolution rate. When the vectors given
 to arguments `a` or `psi`, have smaller sizes then the number of edges, the
 values are recycled. The default values for `d` and `sp` are those produced by
 `Phylo2DirectedGraph()`, and can therefore be omitted in most cases. The object
-that **MPSEM** uses to store PEM information is rather complex and we will
+that **MPSEM** uses to store **PEM** information is rather complex and we will
 hereby not browse through it. Method `as.data.frame` can be used to extract the
-eigenvector from the PEM-class object. For a set of $n$ species, that method
+eigenvector from the `PEM-class` object. For a set of $n$ species, that method
 returns a matrix encompassing at most $n-1$ column vectors that can be used in
 models to represent phylogenetic structure in traits. Here the phylogenetic
-patterns of variation described by two eigenvectors of the PEM we calculated
+patterns of variation described by two eigenvectors of the **PEM** we calculated
 above:
 
-```{r Eigenvector_example, fig.height=5, fig.width=7}
+```{r Eigenvector_example, fig.height=4, fig.width=7.5}
 layout(matrix(c(1,1,1,2,2,3,3),1L,7L))
 par(mar=c(5.1,2.1,4.1,2.1))
 
+## Singular vectors are extracted using the as.data.frame method:
+as.data.frame(perissodactyla.PEM) -> perissodactyla.U
+
 plot(perissodactyla.tree.train, x.lim=60, cex=1.5)
 plot(y = 1L:nrow(perissodactyla.train), ylab="", xlab = "Loading",
-     x = as.data.frame(perissodactyla.PEM)[,1L], xlim=0.5*c(-1,1),
+     x = perissodactyla.U[,1L], xlim=0.5*c(-1,1),
      axes=FALSE, main = expression(bold(v)[1]), cex=1.5)
 axis(1)
 abline(v=0)
 
 plot(y = 1L:nrow(perissodactyla.train), ylab="", xlab = "Loading",
-     x = as.data.frame(perissodactyla.PEM)[,5L], xlim=0.5*c(-1,1),
+     x = perissodactyla.U[,5L], xlim=0.5*c(-1,1),
      axes=FALSE, main = expression(bold(v)[5]), cex=1.5)
 axis(1)
 abline(v=0)
@@ -468,10 +512,10 @@ PEM.fitSimple(
 ) -> perissodactyla.PEM_opt2
 ```
 
-The results of the latter calls are PEMs similar to that obtained using
-PEM.build(), with additional information resulting from the optimization
+The results of the latter calls are a **PEM** similar to that obtained using
+`PEM.build()`, with additional information resulting from the optimization
 process. It is noteworthy that estimates of the steepness parameter (stored as
-element `$optim\$par` of the PEM objects) and, consequently, the resulting
+element `$optim\$par` of the **PEM** objects) and, consequently, the resulting
 phylogenetic eigenvectors, will be different depending on the use of auxiliary
 traits. In the example above, for instance, $a$ was estimated to
 `r round(perissodactyla.PEM_opt1$optim$par,2)` by `PEM.fitSimple()` when no
@@ -481,11 +525,11 @@ an auxiliary trait (second call).
 
 ## Phylogenetic modelling
 
-To model trait values, PEM are used as descriptors in other modelling method.
-Any suitable method can be used. For instance, package **MPSEM** contains a
-utility function called `lmforwardsequentialAICc()` that does step-wise variable
-addition in multiple regression analysis on the basis of the corrected Akaike
-Information Criterion (AICc) [@Hurvich1993]:
+To model trait values, **PEM** are used as descriptors in other modelling
+method. Any suitable method can be used. For instance, package **MPSEM**
+contains a utility function called `lmforwardsequentialAICc()` that does
+step-wise variable addition in multiple regression analysis on the basis of the
+corrected Akaike Information Criterion (AICc) [@Hurvich1993]:
 
 ```{r build_PEM_models}
 lmforwardsequentialAICc(
@@ -502,19 +546,27 @@ lmforwardsequentialAICc(
 summary(lm2) 
 ```
 
-Notice that to pass a single auxiliary trait to `lmforwardsequentialAICc()` in
-the current version of **MPSEM**, it is mandatory to set `drop=FALSE` to the
-bracket operator so that the variable name be conserved. Failure to do so will
-preclude one to make predictions using the resulting linear model. To obtain
-predictions, we need to calculate the locations of the target species with
-respect to the phylogeny of the model species. This is accomplished by
+> It is noteworthy that in order to pass a single auxiliary trait to
+> `lmforwardsequentialAICc()`, it is necessary, as exemplified above, to set
+> `drop=FALSE` to the extraction operator (`[]`) to keep the `data.frame`
+> property of the object. Hence, it is crucial that the auxiliary trait values
+> be referenced with the same variable names in all `data.frame` objects
+> involved in the analysis.
+> 
+> Since, the extraction operator drops the `data.frame` property on its output
+> object by default whenever a single column is selected, it is mandatory to set
+> `drop=FALSE` when a single variable is (or could be) selected. A `data.frame`
+> object is required for making predictions using the resulting linear model.
+
+To obtain predictions, we need to calculate the locations of the target species
+with respect to the phylogeny of the model species. This is accomplished by
 `getGraphLocations()`, to which we give the tree for all species (model +
 targets) and the names (or indices) of the target species. Then, we use the
-`predict()` method for PEM objects. The latter takes, in addition to the PEM
-object, the locations of the target species as obtained by
+`predict()` method for **PEM** objects. The latter takes, in addition to the
+**PEM** object, the locations of the target species as obtained by
 `getGraphLocations()`, an `lm` (or `glm`) object involving the eigenvectors of
-the PEM, and a table of auxiliary trait values for the target species, which can
-be omitted if no auxiliary trait is present in the linear model.
+the **PEM**, and a table of auxiliary trait values for the target species, which
+can be omitted if no auxiliary trait is present in the linear model.
 
 ```{r make_prediction}
 getGraphLocations(
@@ -538,9 +590,9 @@ prediction interval are `r round((10^pred$lower)/1000,1)` and
 actually `r round((10^perissodactyla.test$log.neonatal.wt)/1000,1)`
 $\,\mathrm{kg}$.
 
-# Cross-validating PEM predictions
+# Cross-validating **PEM** predictions
 
-Here, I will show you how to perform a leave-one-out cross-validation of a data
+Here is and example of how to perform a leave-one-out cross-validation of a data
 set using the **R** code from the previous two sections. Predictions will be
 added to table `perissodactyla.data`:
 
@@ -582,13 +634,14 @@ for(i in 1L:nrow(perissodactyla.data)) {
 rm(i, predictions)
 ```
 
-Because the result of `getGraphLocations()` includes the phylogenetic graph with
-the target species removed has its element `$x`, it is not necessary to
-re-calculate the tree with the target species dropped and the phylogenetic graph
-as we did previously for explanatory purposes. Also, I suggest storing the
-internal information about each cross-validation steps into a list (hereby
-called `jackinfo`), so it is possible to access the many details of the analyses
-later on.
+Because the result of `getGraphLocations()` includes the phylogenetic graph
+without the target species _Dicerorhinus sumatrensis_, which was removed from
+the tree given as the argument `tpall` and can be found as its element `$x`, it
+is not necessary to re-calculate the tree with the target species dropped, as
+well as the phylogenetic graph, as we did previously for explanatory purposes.
+Also, the internal information about each cross-validation steps is stored into
+a list (hereby called `jackinfo`), in order for the details of the analyses to
+be accessible later on.
 
 ```{r plot_pred_obs, echo=FALSE, fig.height=7, fig.width=7}
 par(mar=c(5,5,2,2)+0.1)
@@ -597,23 +650,24 @@ range(
   perissodactyla.data[,c("predictions","lower","upper")]
 ) -> rng
 
-plot(NA, xlim = rng, ylim = rng, xlab = "Predicted", ylab = "observed",
+plot(NA, xlim = rng, ylim = rng, xlab = "observed", ylab = "Predicted",
      asp = 1, las = 1)
 points(
-  x = perissodactyla.data[,"predictions"],
-  y = perissodactyla.data[,"log.neonatal.wt"]
+  x = perissodactyla.data[,"log.neonatal.wt"],
+  y = perissodactyla.data[,"predictions"]
 )
 
 abline(0,1)
 arrows(
-  x0 = perissodactyla.data[,"lower"],
-  x1 = perissodactyla.data[,"upper"],
-  y0 = perissodactyla.data[,"log.neonatal.wt"],
-  y1 = perissodactyla.data[,"log.neonatal.wt"],
+  x0 = perissodactyla.data[,"log.neonatal.wt"],
+  x1 = perissodactyla.data[,"log.neonatal.wt"],
+  y0 = perissodactyla.data[,"lower"],
+  y1 = perissodactyla.data[,"upper"],
   length = 0.05,
   angle = 90,
   code = 3
 )
+
 figCounter$register(
   "crossPreds",
   paste(
@@ -636,27 +690,27 @@ mass can be predicted with a cross-validated $R^{2}$ of
 
 ## Influence matrix
 
-The influence matrix is used internally to calculate PEM. It is a matrix having
-as many rows as the number of vertices (species + nodes) and as many columns as
-the number of edges. Any given element of the influence matrix is coding whether
-a vertex, which is represented a row of the matrix is influenced an edge, which
-is represented by a column of the matrix. In the context of PEM, a vertex is
-influenced by an edge when the former has ancestors on the latter or, in other
-words, when an edge is on the path leading from a tip to the root of the tree.
-The influence matrix is obtained as follows:
+The influence matrix is used internally to calculate **PEM**. It is a matrix
+having as many rows as the number of vertices (species + nodes) and as many
+columns as the number of edges. Any given element of the influence matrix is
+coding whether a vertex, which is represented a row of the matrix is influenced
+an edge, which is represented by a column of the matrix. In the context of
+**PEM**, a vertex is influenced by an edge when the former has ancestors on the
+latter or, in other words, when an edge is on the path leading from a tip to the
+root of the tree. The influence matrix is obtained as follows:
 
 ```{r influence_matrix}
 PEMInfluence(perissodactyla.pgraph) -> res
 res
 ```
 
-## Update and forced PEM parameters
+## Update and forced **PEM** parameters
 
 The calculation of the influence matrix performed by `PEM.build()` for a given
 phylogenetic graph need not be done every time new weighting function parameters
 are to be tried. For that reason, **MPSEM** provides a function called
-`PEM.updater()` that takes a previously calculated PEM object, applies new edge
-weighting, and recalculates the phylogenetic eigenvectors:
+`PEM.updater()` that takes a previously calculated **PEM** object, applies new
+edge weighting, and recalculates the phylogenetic eigenvectors:
 
 ```{r PEM_updater}
 PEM.updater(object = perissodactyla.PEM, a = 0, psi = 1) -> res
@@ -681,15 +735,15 @@ PEM.forcedSimple(
 res
 ```
 
-It is noteworthy that contrary to function PEM.fitSimple(), function
+It is noteworthy that contrary to function `PEM.fitSimple()`, function
 `PEM.forcedSimple()` can be used to apply different weighting parameters for
 different edges.
 
-## PEM scores
+## **PEM** scores
 
-PEM scores are the values of target species on the eigenfunctions underlying the
-PEM. These scores are calculated from the graph locations and a PEM object using
-function `Locations2PEMscores()` as follows:
+**PEM** scores are the values of target species on the eigenfunctions underlying
+the **PEM**. These scores are calculated from the graph locations and a **PEM**
+object using function `Locations2PEMscores()` as follows:
 
 ```{r get_scores}
 Locations2PEMscores(
@@ -699,9 +753,9 @@ Locations2PEMscores(
 scores
 ```
 
-The function is used internally by PEM-class `predict` method, and therefore
+The function is used internally by `PEM-class` `predict` method, and therefore
 need not be called when performing linear phylogenetic modelling as exemplified
-above. It comes in handy when the PEM is used together with other modelling
+above. It comes in handy when the **PEM** is used together with other modelling
 approaches (e.g. multivariate regression trees, linear discriminant analysis,
 artificial neural networks) that have `predict` methods that are not specially
 adapted for phylogenetic modelling.

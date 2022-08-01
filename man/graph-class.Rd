@@ -13,7 +13,7 @@ A \code{graph-class} object contains:
   the origin and destination vertices. Additional members must be named and
   are additional edge properties (e.g. length). }
   \item{ vertex }{ A list that optionally contains vertex properties, if any
-  (or an empty list if none). }
+  (or an empty \code{\link{list}} if none). }
 }
 }
 \usage{
@@ -35,7 +35,9 @@ properties.
 }
 \section{Functions}{
 \itemize{
-\item \code{print.graph}: Print method for MPSEM graph-class objects
+\item \code{print.graph}: Print Graph
+
+A print method for graph-class objects.
 }}
 
 \references{
