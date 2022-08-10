@@ -539,68 +539,70 @@ PEM.forcedSimple <- function(y, x, w, d="distance", sp="species", a=0, psi=1,
 getGraphLocations <- function(tpall, targets) {
   oldnlab <- tpall$node.label
   tpall$node.label <- newnlab <- paste("N",1:tpall$Nnode,sep="")
-  tpmodel <- drop.tip(tpall, targets) ; tpmodel$root.edge <- tpall$root.edge
+  tpmodel <- drop.tip(tpall, targets)
+  tpmodel$root.edge <- tpall$root.edge
   xmodel <- Phylo2DirectedGraph(tpmodel)
   Bmodel <- PEMInfluence(xmodel)
   loc <- matrix(NA, length(targets), ncol(Bmodel),
                 dimnames = list(targets,colnames(Bmodel)))
   dtt <- rep(NA, length(targets))
-  for (i in 1L:length(targets)) {
-    ## Target species need to be striped one-by-one.
-    tptargetonly <-
-      if (length(targets) == 1L) tpall else drop.tip(tpall, targets[-i])
-    tptargetonly$root.edge <- tpall$root.edge
-    Vnames <- c(tptargetonly$tip.label,tptargetonly$node.label)
-    ## The vertices names.
-    VBidx <- which(tptargetonly$edge[,2L] == which(Vnames == targets[i]))
-    ## The index of the vertex immediatly below.
-    VB <- tptargetonly$edge[VBidx,1L]
-    ## VB: the vertex immediatly below
-    VBName <- Vnames[VB]
-    ## The name of VB
-    dBX <- tptargetonly$edge.length[VBidx]
-    ## Distance between VB and VX
-    VA <- tptargetonly$edge[tptargetonly$edge[,2L] == VB,1L]
-    ## VA: the vertex below the one immediatly below and
-    VAName <- Vnames[VA]
-    ## its name. That vertex may not exist.
-    dAB <- tptargetonly$edge.length[tptargetonly$edge[,2L] == VB]
-    ## Distance between VB and VA (if exists)
-    VC <- tptargetonly$edge[tptargetonly$edge[,1L] == VB,2L]
-    ## The vertices above the vertex immediatly below and
-    VCName <- Vnames[VC]
-    ## their names. 2 or more (in case of tri+ chotomy).
-    dBC <- tptargetonly$edge.length[tptargetonly$edge[,1L] == VB]
-    ## Distances above VB.
-    VC <- VC[VCName!=targets[i]]
-    dBC <- dBC[VCName!=targets[i]]
-    VCName <- Vnames[VC]
-    ## Strip the target itself from the VC list.
-    if(length(VA)==0) {
-      ## If the target species is beyond the root:
-      loc[i,] <- 0
-      ## In all case: location = the root.
-      dtt[i] <- dBX+min(dBC)
-      ## Distance between the off-root species and the remaining ones.
-    } else {
-      ## If the target species is not beyond the root:
-      dtt[i] <- dBX
-      ## In all cases: dtt == the distance between the target and the vertex
-      ## immediatly below.
-      if(length(VC)>1) {
-        ## When VB is more than dichotomic (several Vertices C):
-        loc[i,] <- Bmodel[VBName,] * xmodel$edge$distance
-        ## Coordinates are those of the still-existing vertex B.
+  if(length(targets))
+    for (i in 1L:length(targets)) {
+      ## Target species need to be striped one-by-one.
+      tptargetonly <-
+        if (length(targets) == 1L) tpall else drop.tip(tpall, targets[-i])
+      tptargetonly$root.edge <- tpall$root.edge
+      Vnames <- c(tptargetonly$tip.label,tptargetonly$node.label)
+      ## The vertices names.
+      VBidx <- which(tptargetonly$edge[,2L] == which(Vnames == targets[i]))
+      ## The index of the vertex immediatly below.
+      VB <- tptargetonly$edge[VBidx,1L]
+      ## VB: the vertex immediatly below
+      VBName <- Vnames[VB]
+      ## The name of VB
+      dBX <- tptargetonly$edge.length[VBidx]
+      ## Distance between VB and VX
+      VA <- tptargetonly$edge[tptargetonly$edge[,2L] == VB,1L]
+      ## VA: the vertex below the one immediatly below and
+      VAName <- Vnames[VA]
+      ## its name. That vertex may not exist.
+      dAB <- tptargetonly$edge.length[tptargetonly$edge[,2L] == VB]
+      ## Distance between VB and VA (if exists)
+      VC <- tptargetonly$edge[tptargetonly$edge[,1L] == VB,2L]
+      ## The vertices above the vertex immediatly below and
+      VCName <- Vnames[VC]
+      ## their names. 2 or more (in case of tri+ chotomy).
+      dBC <- tptargetonly$edge.length[tptargetonly$edge[,1L] == VB]
+      ## Distances above VB.
+      VC <- VC[VCName!=targets[i]]
+      dBC <- dBC[VCName!=targets[i]]
+      VCName <- Vnames[VC]
+      ## Strip the target itself from the VC list.
+      if(length(VA)==0) {
+        ## If the target species is beyond the root:
+        loc[i,] <- 0
+        ## In all case: location = the root.
+        dtt[i] <- dBX+min(dBC)
+        ## Distance between the off-root species and the remaining ones.
       } else {
-        ## When VB collapses (it was dichotomic):
-        loc[i,] <- Bmodel[VAName,] * xmodel$edge$distance
-        ## Copy the coordinates of vertex VA.
-        loc[i,Bmodel[VAName,] != Bmodel[VCName,]] <- dAB
-        ## Change the length of that edge connecting VA to the single VC
-        ## (0 for VA) to dAB.
+        ## If the target species is not beyond the root:
+        dtt[i] <- dBX
+        ## In all cases: dtt == the distance between the target and the vertex
+        ## immediatly below.
+        if(length(VC)>1) {
+          ## When VB is more than dichotomic (several Vertices C):
+          loc[i,] <- Bmodel[VBName,] * xmodel$edge$distance
+          ## Coordinates are those of the still-existing vertex B.
+        } else {
+          ## When VB collapses (it was dichotomic):
+          loc[i,] <- Bmodel[VAName,] * xmodel$edge$distance
+          ## Copy the coordinates of vertex VA.
+          loc[i,Bmodel[VAName,] != Bmodel[VCName,]] <- dAB
+          ## Change the length of that edge connecting VA to the single VC
+          ## (0 for VA) to dAB.
+        }
       }
     }
-  }
   if(!is.null(oldnlab)) {
     oldnlab <- oldnlab[match(attr(xmodel,"vlabel"),newnlab)]
     attr(xmodel,"vlabel")[!is.na(oldnlab)] <- na.omit(oldnlab)
