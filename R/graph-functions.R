@@ -44,7 +44,7 @@
 #' indices).
 #' @param id Indentity (label or index) of vertex or edge to be removed.
 #' @param tp Phylogenetic tree object of class \sQuote{phylo}, as defined in
-#' \code{\link{ape-package}}.
+#' \code{\link[ape]{ape-package}}.
 #' 
 #' @details A new graph can be populated with \code{n} vertices using function
 #' \code{pop.graph}. Additional vertices can be added later with function
@@ -58,10 +58,11 @@
 #' 
 #' Function \code{Phylo2DirectedGraph} uses the MPSEM graph functions to convert
 #' a rooted phylogenetic tree of class \sQuote{phylo} (see
-#' \code{\link{ape-package}}) to a \code{\link{graph-class}} object. It recycles
-#' tip labels. It also creates default node labels if they were absent from the
-#' \sQuote{phylo} object, and uses them as vertex labels. The resulting acyclic
-#' graph can then be edited to represent cases that do not have a tree topology.
+#' \code{\link[ape]{ape-package}}) to a \code{\link{graph-class}} object. It
+#' recycles tip labels. It also creates default node labels if they were absent
+#' from the \sQuote{phylo} object, and uses them as vertex labels. The resulting
+#' acyclic graph can then be edited to represent cases that do not have a tree
+#' topology.
 #' 
 #' @returns The function returns a \code{\link{graph-class}} object. Objects
 #' returned by \code{\link{Phylo2DirectedGraph}} have a \code{\link{numeric}}

@@ -1,5 +1,5 @@
 ---
-title: "A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM) as implemented in R package MPSEM (0.4-2)"
+title: "A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM) as implemented in R package MPSEM (0.4-4)"
 author: "Guillaume Guénard"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
@@ -8,7 +8,7 @@ output:
     toc_depth: 3
 bibliography: PEM_with_MPSEM.bib
 vignette: >
-  %\VignetteIndexEntry{A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM) as implemented in R package MPSEM (0.4-2)}
+  %\VignetteIndexEntry{A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM) as implemented in R package MPSEM (0.4-4)}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -194,7 +194,7 @@ Now that the data match the tree in terms of species content, we then need to
 make sure that species ordering also matches as follows:
 
 ```{r check_order}
-cbind(perissodactyla.tree$tip.label,perissodactyla.data[,1L])
+cbind(perissodactyla.tree$tip.label, perissodactyla.data[,1L])
 ```
 
 Since they do not, we need to recalculate `spmatch` with the new, reduced, tree
@@ -208,7 +208,7 @@ match(
 
 perissodactyla.data[spmatch,] -> perissodactyla.data
 
-all(perissodactyla.tree$tip.label==perissodactyla.data[,1L])
+all(perissodactyla.tree$tip.label == perissodactyla.data[,1L])
 ```
 
 The last code line is just a last check to guarantee that all species names are
@@ -237,7 +237,7 @@ perissodactyla.data[-1L,,drop=FALSE] -> perissodactyla.train
 perissodactyla.data[1L,,drop=FALSE] -> perissodactyla.test
 drop.tip(
   perissodactyla.tree,
-  tip="Dicerorhinus sumatrensis"
+  tip = "Dicerorhinus sumatrensis"
 ) -> perissodactyla.tree.train
 ```
 
@@ -264,13 +264,13 @@ values occur with time following branching, $\psi$ is the evolution rate of the
 trait, and $\phi_{j}$ is the length of edge $j$ [@Guenard2013].
 
 ```{r display_weighting, echo=FALSE, fig.height=5, fig.width = 7}
-par(mar=c(4.5,4.5,1,7)+0.1)
-d <- seq(0,2,length.out=1000)
+par(mar=c(4.5,4.5,1,7) + 0.1)
+d <- seq(0, 2, length.out=1000)
 a <- c(0,0.33,0.67,1,0.25,0.75,0)
 psi <- c(1,1,1,1,0.65,0.65,0.4)
 cc <- c(1,1,1,1,1,1,1)
 ll <- c(1,2,2,2,3,3,3)
-trial <- cbind(a,psi)
+trial <- cbind(a, psi)
 colnames(trial) <- c("a","psi")
 ntrials <- nrow(trial)
 nd <- length(d)
@@ -278,20 +278,19 @@ matrix(
   NA,
   ntrials,
   nd,
-  dimnames=list(paste("a=",trial[,"a"],", psi=",trial[,"psi"],sep=""),
-                paste("d=",round(d,4),sep=""))
+  dimnames=list(paste("a=", trial[,"a"], ", psi=", trial[,"psi"], sep=""),
+                paste("d=", round(d,4), sep=""))
 ) -> w
 for(i in 1:ntrials)
-  w[i,] <- MPSEM::PEMweights(d,trial[i,"a"],trial[i,"psi"])
-plot(NA,xlim=c(0,2),ylim=c(0,1.6),ylab=expression(paste(italic(w[list(italic(a),psi)]),~(phi))),
-  xlab=expression(paste("Distance (",italic(phi),")",sep="")),axes=FALSE)
-axis(1,at=seq(0,2,0.5),label=seq(0,2,0.5))
-axis(2,las=1)
+  w[i,] <- MPSEM::PEMweights(d, trial[i,"a"], trial[i,"psi"])
+plot(NA, xlim=c(0,2), ylim=c(0,1.6), ylab="Weight", xlab="Distance", axes=FALSE)
+axis(1, at=seq(0,2,0.5), label=seq(0,2,0.5))
+axis(2, las=1)
 text(expression(paste(~~~a~~~~~~~psi)),x=2.2,y=1.57,xpd=TRUE,adj=0)
 for(i in 1:ntrials) {
-  lines(x=d,y=w[i,],col=cc[i],lty=ll[i])
-  text(paste(sprintf("%.2f",trial[i,1]),sprintf("%.2f",trial[i,2]),sep="  "),
-       x=rep(2.2,1),y=w[i,1000],xpd=TRUE,adj=0)
+  lines(x=d, y=w[i,], col=cc[i], lty=ll[i])
+  text(paste(sprintf("%.2f", trial[i,1]), sprintf("%.2f",trial[i,2]), sep="  "),
+       x=rep(2.2,1), y=w[i,1000], xpd=TRUE, adj=0)
 }
 rm(d,a,psi,cc,ll,trial,ntrials,nd,w,i)
 figCounter$register(

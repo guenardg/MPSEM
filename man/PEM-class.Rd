@@ -103,20 +103,20 @@ from \code{\link{lm}}. The user must provide auxiliary trait values if
 }
 \section{Functions}{
 \itemize{
-\item \code{print.PEM}: Print PEM-class
+\item \code{print(PEM)}: Print PEM-class
 
 A print method for PEM-class objects.
 
-\item \code{as.data.frame.PEM}: Method \code{as.data.frame} for PEM-class Objects
+\item \code{as.data.frame(PEM)}: Method \code{as.data.frame} for PEM-class Objects
 
 A method to extract the phylogenetic eigenvectors from a PEM-class object.
 
-\item \code{predict.PEM}: Predict Method for PEM-class Objects
+\item \code{predict(PEM)}: Predict Method for PEM-class Objects
 
 A predict method to predict species trait values using Phylogenetic
 Eigenvector Maps.
-}}
 
+}}
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
 maps: a framework to model and predict species traits. Methods in Ecology 

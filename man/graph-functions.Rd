@@ -45,7 +45,7 @@ indices).}
 \item{id}{Indentity (label or index) of vertex or edge to be removed.}
 
 \item{tp}{Phylogenetic tree object of class \sQuote{phylo}, as defined in
-\code{\link{ape-package}}.}
+\code{\link[ape]{ape-package}}.}
 }
 \value{
 The function returns a \code{\link{graph-class}} object. Objects
@@ -71,44 +71,45 @@ that vertex using a new set of edges.
 
 Function \code{Phylo2DirectedGraph} uses the MPSEM graph functions to convert
 a rooted phylogenetic tree of class \sQuote{phylo} (see
-\code{\link{ape-package}}) to a \code{\link{graph-class}} object. It recycles
-tip labels. It also creates default node labels if they were absent from the
-\sQuote{phylo} object, and uses them as vertex labels. The resulting acyclic
-graph can then be edited to represent cases that do not have a tree topology.
+\code{\link[ape]{ape-package}}) to a \code{\link{graph-class}} object. It
+recycles tip labels. It also creates default node labels if they were absent
+from the \sQuote{phylo} object, and uses them as vertex labels. The resulting
+acyclic graph can then be edited to represent cases that do not have a tree
+topology.
 }
 \section{Functions}{
 \itemize{
-\item \code{pop.graph}: Create Graph
+\item \code{pop.graph()}: Create Graph
 
 Create a graph and populates it with vertices.
 
-\item \code{add.vertex}: Add Vertices
+\item \code{add.vertex()}: Add Vertices
 
 Add vertices to an existing graph.
 
-\item \code{add.edge}: Add Edges
+\item \code{add.edge()}: Add Edges
 
 Add edges to a graph.
 
-\item \code{rm.edge}: Remove Edges
+\item \code{rm.edge()}: Remove Edges
 
 Remove edges from a graph.
 
-\item \code{rm.vertex}: Remove Vertices
+\item \code{rm.vertex()}: Remove Vertices
 
 Remove vertices from a graph.
 
-\item \code{collapse.vertex}: Collapse Vertices
+\item \code{collapse.vertex()}: Collapse Vertices
 
 Remove vertices from a graph: remove vertices together with their associated
 edges.
 
-\item \code{Phylo2DirectedGraph}: Phylogenetic Tree Conversion
+\item \code{Phylo2DirectedGraph()}: Phylogenetic Tree Conversion
 
 Create a new \code{\link{graph-class}} object from a phylo-class object
 (phylogenetic tree).
-}}
 
+}}
 \examples{
 ## Populate a graph with 7 vertices labeled A-G having properties x and y:
 gr <- pop.graph(n=7,

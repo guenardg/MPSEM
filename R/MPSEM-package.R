@@ -28,13 +28,9 @@
 ##
 #' \packageTitle{MPSEM}
 #' 
-#' @description \packageDescription{MPSEM}
-#' 
-#' @docType package
-#' 
 #' @name MPSEM-package
 #' 
-#' @aliases MPSEM
+#' @description \packageDescription{MPSEM}
 #' 
 #' @details Phylogenetic eignevector maps (PEM) is a method for using phylogeny
 #' to model features of organism, most notably quantitative traits. It consists
@@ -43,13 +39,13 @@
 #' inducted by evolution. These patterns are used to model the data, using a
 #' linear model for instance.
 #' 
-#' If one in interested in a \sQuote{target} species (i.e. a species for which the trait
-#' value is unknown), and provided that we know the phylogenetic relationships
-#' between that species and those of the model, the method allows us to obtain the
-#' scores of that new species on the phylogenetic eigenfunctions underlying a
-#' PEM. These scores are used to make empirical predictions of trait values for
-#' the target species on the basis of those observed for the species used in the
-#' model.
+#' If one in interested in a \sQuote{target} species (i.e. a species for which
+#' the trait value is unknown), and provided that we know the phylogenetic
+#' relationships between that species and those of the model, the method allows
+#' us to obtain the scores of that new species on the phylogenetic
+#' eigenfunctions underlying a PEM. These scores are used to make empirical
+#' predictions of trait values for the target species on the basis of those
+#' observed for the species used in the model.
 #' 
 #' Functions \code{\link{PEM.build}}, \code{\link{PEM.updater}},
 #' \code{\link{PEM.fitSimple}}, and \code{\link{PEM.forcedSimple}} allow one to

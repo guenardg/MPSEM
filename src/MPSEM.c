@@ -34,7 +34,7 @@
 
 // Allocate memory for ne directed edges.
 dedge* allocdedge(unsigned int ne) {
-  dedge* de = (dedge*)Calloc(ne,dedge);
+  dedge* de = (dedge*)R_Calloc(ne,dedge);
   if(de == NULL)
     error("Unable to allocate %d directed edges",ne);
   return de;
@@ -42,7 +42,7 @@ dedge* allocdedge(unsigned int ne) {
 
 // Re-allocate memory for ne directed edges.
 dedge* reallocdedge(dedge *de, unsigned int ne) {
-  de = (dedge*)Realloc(de,ne,dedge);
+  de = (dedge*)R_Realloc(de,ne,dedge);
   if(de == NULL)
     error("Unable to reallocate %d directed edges",ne);
   return de;
@@ -51,7 +51,7 @@ dedge* reallocdedge(dedge *de, unsigned int ne) {
 // Initialize ne directed edges starting from start.
 dedge* initdedge(dedge* de, unsigned int start, unsigned int ne) {
   unsigned int i;
-  for (i = start; i < start+ne; i++) {
+  for (i = start; i < start + ne; i++) {
     de[i].id = i;
     de[i].nv = 0;
     de[i].v = NULL;
@@ -76,7 +76,7 @@ void assigndedgevalues(dedge* de, unsigned int ne, double* ev,
 // Free directed edges from memory.
 dedge* freededge(dedge* de) {
   if(de != NULL) {
-    Free(de);
+    R_Free(de);
     if(de != NULL)
       warning("directed edges not freed from memory");
   }
@@ -85,7 +85,7 @@ dedge* freededge(dedge* de) {
 
 // Allocate memory for nn directed vertices.
 dvertex* allocdvertex(unsigned int nn) {
-  dvertex* dn = (dvertex*)Calloc(nn,dvertex);
+  dvertex* dn = (dvertex*)R_Calloc(nn,dvertex);
   if(dn == NULL)
     error("Unable to allocate %d directed vertices",nn);
   return dn;
@@ -93,7 +93,7 @@ dvertex* allocdvertex(unsigned int nn) {
 
 // Re-allocate memory for nn directed edges.
 dvertex* reallocdvertex(dvertex *dn, unsigned int nn) {
-  dn = (dvertex*)Realloc(dn,nn,dvertex);
+  dn = (dvertex*)R_Realloc(dn,nn,dvertex);
   if(dn == NULL)
     error("Unable to reallocate %d directed vertices",nn);
   return dn;
@@ -102,7 +102,7 @@ dvertex* reallocdvertex(dvertex *dn, unsigned int nn) {
 // Initialize nn directed vertices starting from start.
 dvertex* initdvertex(dvertex* dn, unsigned int start, unsigned int nn) {
   unsigned int i;
-  for(i = start; i < start+nn; i++) {
+  for(i = start; i < start + nn; i++) {
     dn[i].id = i;
     dn[i].nv = 0;
     dn[i].v = NULL;
@@ -135,8 +135,8 @@ dvertex* evalallocdvertexres(dvertex* dn, unsigned int nn, int* a, int* b,
     dn[(unsigned int)(a[i])-1].nd++;
   }
   for(i = 0; i < nn; i++) {
-    dn[i].u = (dedge**)Realloc(dn[i].u,dn[i].nu,dedge*);
-    dn[i].d = (dedge**)Realloc(dn[i].d,dn[i].nd,dedge*);
+    dn[i].u = (dedge**)R_Realloc(dn[i].u,dn[i].nu,dedge*);
+    dn[i].d = (dedge**)R_Realloc(dn[i].d,dn[i].nd,dedge*);
   }
   return dn;
 }
@@ -144,14 +144,14 @@ dvertex* evalallocdvertexres(dvertex* dn, unsigned int nn, int* a, int* b,
 // Free directed vertex memory ressources.
 dvertex freedvertexres(dvertex dn) {
   if(dn.u != NULL) {
-    Free(dn.u);
+    R_Free(dn.u);
     if(dn.u != NULL)
       warning("upward edge pointer not freed from memory");
     else
       dn.nu = 0;
   }
   if(dn.d != NULL) {
-    Free(dn.d);
+    R_Free(dn.d);
     if(dn.d != NULL)
       warning("downward edge pointer not freed from memory");
     else
@@ -166,7 +166,7 @@ dvertex* freedvertex(dvertex* dn, unsigned int nn) {
   if (dn != NULL) {
     for (i = 0; i < nn; i++)
       dn[i] = freedvertexres(dn[i]);
-    Free(dn);
+    R_Free(dn);
   }
   if(dn != NULL)
     warning("directed vertices not freed from memory");
@@ -201,15 +201,15 @@ void assigndgraphvalues(dgraph* dgr, double* ev, unsigned int nev, double* nv,
 void makedgraph(int* a, int* b, dgraph* dgr) {
   unsigned int i, u, d, *nu, *nd;
   dgr->dn = evalallocdvertexres(dgr->dn,dgr->nn,a,b,dgr->ne);
-  nu = (unsigned int*)Calloc(dgr->nn,unsigned int);
-  nd = (unsigned int*)Calloc(dgr->nn,unsigned int);
+  nu = (unsigned int*)R_Calloc(dgr->nn,unsigned int);
+  nd = (unsigned int*)R_Calloc(dgr->nn,unsigned int);
   for(i = 0; i < dgr->nn; i++) {
     nu[i] = 0;
     nd[i] = 0;
   }
   for (i = 0; i < dgr->ne; i++) {
-    u = (unsigned int)(a[i])-1;
-    d = (unsigned int)(b[i])-1;
+    u = (unsigned int)(a[i]) - 1;
+    d = (unsigned int)(b[i]) - 1;
     /* Connect each edge to its respective upward and downward vertices, and
        vis-versa.*/
     dgr->de[i].u = &dgr->dn[u];
@@ -217,8 +217,8 @@ void makedgraph(int* a, int* b, dgraph* dgr) {
     dgr->dn[u].d[nd[u]++] = &dgr->de[i];
     dgr->dn[d].u[nu[d]++] = &dgr->de[i];
   }
-  Free(nu);
-  Free(nd);
+  R_Free(nu);
+  R_Free(nd);
   return;
 }
 
@@ -239,7 +239,7 @@ matrix initmatrix(char* id, unsigned int nr, unsigned int nc) {
   mat.id = id;
   mat.nr = nr;
   mat.nc = nc;
-  mat.v = (double*)Calloc(nr*nc,double);
+  mat.v = (double*)R_Calloc(nr * nc,double);
   if(mat.v == NULL)
     error("Unable to allocate ressources for matrix %s",mat.id);
   return mat;
@@ -259,7 +259,7 @@ matrix assignmatrix(char* id, unsigned int nr, unsigned int nc, double* v) {
  * assign the data pointer.
  * Otherwise, use deassignmatrix() or a segfault will result.*/
 void freematrix(matrix* mat) {
-  Free(mat->v);
+  R_Free(mat->v);
   if(mat->v != NULL)
     warning("Data from matrix %s could not be freed from memory.",mat->id);
   else {
@@ -348,7 +348,7 @@ void rowcentermeans(matrix *a, matrix *b, double *m) {
     acc = 0.0;
     for (j = 0; j < a->nc; j++, offset += a->nr)
       acc += a->v[offset];
-    m[i] = acc/(a->nc);
+    m[i] = acc / (a->nc);
     offset = i;
     for (j = 0; j < a->nc; j++, offset += a->nr)
       b->v[offset] = a->v[offset] - m[i];
@@ -366,9 +366,9 @@ void colcentermeans(matrix *a, matrix *b, double *m) {
     acc = 0.0;
     for (i = 0; i < a->nr; i++)
       acc += a->v[i + offset];
-    m[j] = acc/(a->nr);
+    m[j] = acc / (a->nr);
     for (i = 0; i < a->nr; i++)
-      b->v[i+offset] = a->v[i+offset] - m[j];
+      b->v[i + offset] = a->v[i + offset] - m[j];
   }
   return;
 }
@@ -390,7 +390,7 @@ void colweighting(matrix *a, matrix *b, double *w) {
   offset = 0;
   for (j = 0; j < a->nc; j++, offset += a->nr)
     for (i = 0; i < a->nr; i++)
-      b->v[i+offset] = a->v[i+offset] * w[j];
+      b->v[i + offset] = a->v[i + offset] * w[j];
   return;
 }
 
@@ -437,8 +437,8 @@ void matrixproduct(matrix *a, matrix *b, matrix *c) {
       offset3 = 0;
       acc = 0.0;
       for (k = 0; k < a->nc; k++, offset3 += a->nc)
-        acc += a->v[i+offset3] * b->v[k+offset2];
-      c->v[i+offset1] = acc;
+        acc += a->v[i + offset3] * b->v[k + offset2];
+      c->v[i + offset1] = acc;
     }
   }
   return;
@@ -455,8 +455,8 @@ void matrixweightedproduct(matrix *a, double*d, matrix *b, matrix *c) {
       offset3 = 0;
       acc = 0.0;
       for (k = 0; k < a->nc; k++, offset3 += a->nc)
-        acc += a->v[i+offset3] * d[k] * b->v[k+offset2];
-      c->v[i+offset1] = acc;
+        acc += a->v[i + offset3] * d[k] * b->v[k + offset2];
+      c->v[i + offset1] = acc;
     }
   }
   return;
@@ -473,8 +473,8 @@ void matrixtransproduct(matrix *a, matrix *b, matrix *c) {
     for (j = 0; j < c->nc; j++, offset3 += b->nr, offset2 += c->nr) {
       acc = 0.0;
       for (k = 0; k < a->nr; k++)
-        acc += a->v[k+offset1] * b->v[k+offset3];
-      c->v[i+offset2] = acc;
+        acc += a->v[k + offset1] * b->v[k + offset3];
+      c->v[i + offset2] = acc;
     }
   }
   return;
@@ -491,8 +491,8 @@ void matrixproducttrans(matrix *a, matrix *b, matrix *c) {
       offset2 = 0;
       offset3 = 0;
       for(k = 0; k < a->nc; k++, offset2 += a->nr, offset3 += b->nr)
-	acc += a->v[i+offset2] * b->v[j+offset3];
-      c->v[i+offset1] = acc;
+        acc += a->v[i + offset2] * b->v[j + offset3];
+      c->v[i + offset1] = acc;
     }
   }
   return;
@@ -509,8 +509,8 @@ void matrixproductweightedtrans(matrix *a, double *d, matrix *b, matrix *c) {
       offset2 = 0;
       offset3 = 0;
       for(k = 0; k < a->nc; k++, offset2 += a->nr, offset3 += b->nr)
-	acc += a->v[i+offset2] * d[k] * b->v[j+offset3];
-      c->v[i+offset1] = acc;
+        acc += a->v[i + offset2] * d[k] * b->v[j + offset3];
+      c->v[i + offset1] = acc;
     }
   }
   return;
@@ -519,9 +519,9 @@ void matrixproductweightedtrans(matrix *a, double *d, matrix *b, matrix *c) {
 // Extract the diagonal of a matrix.
 void getdiagonal(matrix *mat, double *a) {
   unsigned int i, order, offset = 0;
-  order = (mat->nr < mat->nc)?mat->nr:mat->nc;
+  order = (mat->nr < mat->nc) ? mat->nr : mat->nc;
   for (i = 0; i < order; i++, offset += mat->nr)
-    a[i] = mat->v[i+offset];
+    a[i] = mat->v[i + offset];
   return;
 }
 
@@ -598,16 +598,16 @@ void OUdedgecoefs(double* ev, double* lg, unsigned int ne, double alpha,
   unsigned int i, idx;
   if(alpha != 0.0) {
     for(i = 0, idx = 0; i < ne; i++) {
-      ev[idx++] = exp(-alpha*lg[i]);
-      ev[idx++] = 1.0-exp(-alpha*lg[i]);
-      ev[idx++] = sigma*sqrt((1.0-exp(-2.0*alpha*lg[i]))/(2*alpha));
+      ev[idx++] = exp(-alpha * lg[i]);
+      ev[idx++] = 1.0 - exp(-alpha * lg[i]);
+      ev[idx++] = sigma * sqrt((1.0 - exp(-2.0 * alpha * lg[i]))/(2 * alpha));
     }
   }
   else {
     for(i = 0, idx = 0; i < ne; i++) {
       ev[idx++] = 1.0;
       ev[idx++] = 0.0;
-      ev[idx++] = sigma*sqrt(lg[i]);
+      ev[idx++] = sigma * sqrt(lg[i]);
     }
   }
   return;
@@ -622,7 +622,7 @@ void simOUprocess(dgraph* dgr, unsigned int sr, unsigned int n, double* out) {
       lc = dgr->dn[sr].d[i]->v;
       opt = *(dgr->dn[sr].d[i]->d->v);
       for(j = 0, top = 0; j < n; j++, top += dgr->nn)
-	out[top+d] = rnorm(out[top+sr]*lc[0]+opt*lc[1],lc[2]);
+        out[top + d] = rnorm(out[top + sr] * lc[0] + opt * lc[1],lc[2]);
       simOUprocess(dgr,dgr->dn[sr].d[i]->d->id,n,out);
     }
   }
@@ -632,8 +632,8 @@ void simOUprocess(dgraph* dgr, unsigned int sr, unsigned int n, double* out) {
 void PEMvarC(double* d, int* nd, double* a, double* psi, double* res) {
   int i;
   for(i = 0; i < *nd ; i++) {
-    if(d[i]!=0.0)
-      res[i] = (psi[i])*(psi[i])*R_pow(d[i],1.0-(a[i]));
+    if(d[i] != 0.0)
+      res[i] = psi[i] * psi[i] * R_pow(d[i],1.0 - a[i]);
     else
       res[i] = 0.0;
   }
@@ -644,7 +644,7 @@ void PEMweightC(double* d, int* nd, double* a, double* psi, double* res) {
   int i;
   for(i = 0; i < *nd ; i++) {
     if(d[i]!=0.0)
-      res[i] = (psi[i])*R_pow(d[i],0.5*(1.0-(a[i])));
+      res[i] = psi[i] *R_pow(d[i],0.5 * (1.0 - a[i]));
     else
       res[i] = 0.0;
   }
@@ -687,8 +687,8 @@ void checkdedge(dedge* de, unsigned int ne) {
   printf("Checking %d edge(s) of size %d starting at address %p\n",
          (unsigned int)ne,(unsigned int)sizeof(dedge),de);
   for(i = 0; i < ne; i++)
-    printf("E%d downward N%d and upward N%d\n",de[i].id,de[i].u->id+1,
-           de[i].d->id+1);
+    printf("E%d downward N%d and upward N%d\n",de[i].id,de[i].u->id + 1,
+           de[i].d->id + 1);
   return;
 }
 
@@ -715,17 +715,18 @@ void checkdvertex(dvertex* dn, unsigned int nn) {
   for(i = 0; i < nn; i++) {
     if(dn[i].nu > 0) {
       for(j = 0; j < dn[i].nu; j++)
-        printf("N%d <- E%d <- N%d\n",dn[i].id+1,dn[i].u[j]->id+1,
-               dn[i].u[j]->u->id+1);
+        printf("N%d <- E%d <- N%d\n",dn[i].id + 1,dn[i].u[j]->id + 1,
+               dn[i].u[j]->u->id + 1);
     }
     else
-      printf("N%d is not upward-connected\n",dn[i].id+1);
+      printf("N%d is not upward-connected\n",dn[i].id + 1);
     if(dn[i].nd > 0) {
       for(j = 0; j < dn[i].nd; j++)
-	printf("N%d -> E%d -> N%d\n",dn[i].id+1,dn[i].d[j]->id+1,dn[i].d[j]->d->id+1);
+        printf("N%d -> E%d -> N%d\n",dn[i].id + 1,dn[i].d[j]->id + 1,
+               dn[i].d[j]->d->id + 1);
     }
     else
-      printf("N%d is not downward-connected\n",dn[i].id+1);
+      printf("N%d is not downward-connected\n",dn[i].id + 1);
   }
   return;
 }
@@ -736,7 +737,7 @@ void checkdvertexvalues(dvertex* dn, unsigned int nn) {
     printf("N%d: ",dn[i].id);
     if(dn[i].nv > 0)
       for(j = 0; j < dn[i].nv; j++)
-	printf("%f ",dn[i].v[j]);
+        printf("%f ",dn[i].v[j]);
     else
       printf("none");
     printf("\n");
@@ -768,7 +769,7 @@ void checkmatrix(matrix* mat) {
     printf("Data pointer: %p\n",mat->v);
     for(i = 0; i < mat->nr; i++) {
       for(j = 0, offset = i; j < mat->nc; j++, offset += mat->nr)
-	printf("%f ",mat->v[offset]);
+        printf("%f ",mat->v[offset]);
       printf("\n");
     }
   }
@@ -852,13 +853,13 @@ void test_function6(double *mat1, double *d, double *mat2, double *res,
 void PEMInfMat(int* from, int* to, int* ne, int* nn, int* out) {
   dgraph* dgr;
   unsigned int i, idx;
-  dgr = (dgraph*)Calloc(1,dgraph);
+  dgr = (dgraph*)R_Calloc(1,dgraph);
   *dgr = initdgraph(NULL,*ne,NULL,*nn,NULL);
   makedgraph(from,to,dgr);
   for(i = 0, idx = 0; i < *ne; i++, idx += *nn)
     InfluenceRD(dgr,i,&out[idx]);
   freedgraph(dgr);
-  Free(dgr);
+  R_Free(dgr);
   return;
 }
 
@@ -867,7 +868,7 @@ void EvolveQC(int* from, int* to, int* ne, int* nn, double* nv, double* tw,
               int* ntw, int* anc, int* n, int* sr) {
   dgraph* dgr;
   unsigned int i, sri, anci;
-  dgr = (dgraph*)Calloc(1,dgraph);
+  dgr = (dgraph*)R_Calloc(1,dgraph);
   *dgr = initdgraph("Tree",*ne,NULL,*nn,NULL);
   makedgraph(from,to,dgr);
   assigndvertexvalues(dgr->dn,dgr->nn,nv,*n);
@@ -879,7 +880,7 @@ void EvolveQC(int* from, int* to, int* ne, int* nn, double* nv, double* tw,
   for(i = 0; i < ((*n)*(*nn)); i++)
     nv[i]++;
   freedgraph(dgr);
-  Free(dgr);
+  R_Free(dgr);
   return;
 }
 
@@ -888,19 +889,19 @@ void OUsim(int* from, int* to, int* ne, int* nn, double* lg, double* alpha,
   dgraph* dgr;
   unsigned int i, idx, sri;
   double* ev;
-  dgr = (dgraph*)Calloc(1,dgraph);
+  dgr = (dgraph*)R_Calloc(1,dgraph);
   *dgr = initdgraph("Tree",*ne,NULL,*nn,NULL);
   makedgraph(from,to,dgr);
-  ev = (double*)Calloc(3*(*ne),double);
+  ev = (double*)R_Calloc(3*(*ne),double);
   OUdedgecoefs(ev,lg,(unsigned int)(*ne),*alpha,*sigma);
   assigndgraphvalues(dgr,ev,3,opt,1);
-  sri = (*sr)-1;
+  sri = (*sr) - 1;
   for (i = 0, idx = sri; i < *n; i++, idx += *nn)
     out[idx] = dgr->dn[sri].v[0];
   simOUprocess(dgr,sri,(unsigned int)(*n),out);
-  Free(ev);
+  R_Free(ev);
   freedgraph(dgr);
-  Free(dgr);
+  R_Free(dgr);
   return;
 }
 
@@ -935,10 +936,10 @@ void PEMLoc2Scores(int* ne, double* mw, int* ntgt, double* loc, double* a,
   // Step1: From distances to weights
   for(i = 0; i < *ntgt; i++)
     for(j = 0, offset = 0; j < *ne; j++, offset += *ntgt)
-      if(loc[offset+i]!=0.0)
-	loc[offset+i]=(psi[j])*R_pow(loc[offset+i],0.5*(1.0-(a[j])));
+      if(loc[offset + i] != 0.0)
+        loc[offset + i] = psi[j] * R_pow(loc[offset + i],0.5 * (1.0 - a[j]));
       else 
-	loc[offset+i]=0;
+        loc[offset + i] = 0;
   /* Step2: centering with the original mean weights (ie. mean columns of B
    * times edge weights)*/
   colcentering(&locMat,&locMat,mw);

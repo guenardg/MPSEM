@@ -30,14 +30,14 @@
 #' 
 #' @description Functions to simulate the evolution of a quantitative trait
 #' along a phylogenetic tree inputted as an object of class \sQuote{phylo}
-#' (package \link{ape}) or a \code{\link{graph-class}} object.
+#' (package \link[ape]{ape}) or a \code{\link{graph-class}} object.
 #' 
 #' @name trait-simulator
 #' 
 #' @aliases trait simulation
 #' 
 #' @param tp A rooted phylogenetic tree of class \sQuote{phylo} (see package
-#' \link{ape}).
+#' \link[ape]{ape}).
 #' @param tw Transition matrix giving the probability that the optimum trait
 #' value changes from one state (row) to another (column) at vertices. 
 #' All rows must sum to 1.

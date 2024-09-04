@@ -46,17 +46,17 @@ that minimizes information loss from the standpoint of information theory.
 }
 \section{Functions}{
 \itemize{
-\item \code{lmforwardsequentialAICc}: Forward Stepwise Regression AICc
+\item \code{lmforwardsequentialAICc()}: Forward Stepwise Regression AICc
 
 Forward stepwise variable addition using the sample-size-corrected Akaike
 Information Criterion.
 
-\item \code{lmforwardsequentialsidak}: Forward Stepwise Regression Sidak
+\item \code{lmforwardsequentialsidak()}: Forward Stepwise Regression Sidak
 
 Forward stepwise variable addition using a Sidak multiple testing
 corrected alpha error threshold as the stopping criterion.
-}}
 
+}}
 \references{
 Burnham, K. P. & Anderson, D. R. 2002. Model selection and multimodel
 inference: a practical information-theoretic approach, 2nd ed.

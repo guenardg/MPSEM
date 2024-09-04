@@ -35,11 +35,11 @@ properties.
 }
 \section{Functions}{
 \itemize{
-\item \code{print.graph}: Print Graph
+\item \code{print(graph)}: Print Graph
 
 A print method for graph-class objects.
-}}
 
+}}
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
 maps: a framework to model and predict species traits. Methods in Ecology 

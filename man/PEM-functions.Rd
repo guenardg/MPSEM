@@ -94,7 +94,7 @@ implemented in \code{\link{optim}}.}
 implemented in \code{\link{optim}}.}
 
 \item{tpall}{First parameter of function \code{getGraphLocations}:
-Phylogenetic tree object with class \sQuote{phylo} (package \link{ape})
+Phylogenetic tree object with class \sQuote{phylo} (package \link[ape]{ape})
 containing all species (model and target) used in the study.}
 
 \item{targets}{Name of the target species to extract using the tree
@@ -159,7 +159,7 @@ nodes of the phylogeny) in order to estimate ancestral trait values.
 }
 \section{Functions}{
 \itemize{
-\item \code{PEMInfluence}: Influence Matrix
+\item \code{PEMInfluence()}: Influence Matrix
 
 Calculates the influence matrix of a phylogenetic graph. The influence matrix
 is a binary matrix whose rows and columns correspond to the vertices and
@@ -168,56 +168,56 @@ whether a given edge had been taken by any ancestors of a vertex
 (representing extinct of extant species) during evolution (value = 1) or not
 (value = 0).
 
-\item \code{PEMweights}: PEM Weighting
+\item \code{PEMweights()}: PEM Weighting
 
 A power function to obtain the edge weights used during PEM calculation.
 
-\item \code{PEM.build}: PEM Building
+\item \code{PEM.build()}: PEM Building
 
 Calculates a PEM with parameters given by arguments a and psi.
 
-\item \code{PEM.updater}: PEM Update
+\item \code{PEM.updater()}: PEM Update
 
 Update a PEM with new parameters given by arguments a and psi.
 
-\item \code{PEM.fitSimple}: Fitting a PEM to Data while Estimating Global Steepness
+\item \code{PEM.fitSimple()}: Fitting a PEM to Data while Estimating Global Steepness
 
 Fits a PEM to a data set estimating the selection (steepness) parameter using
 gradient descent. The selection and evolution rate (psi = 1) are assumed to
 be homogeneous for the whole phylogenetic network.
 
-\item \code{PEM.forcedSimple}: Fitting a PEM to Data while Forcing Global Steepness
+\item \code{PEM.forcedSimple()}: Fitting a PEM to Data while Forcing Global Steepness
 
 Fits a PEM to a data set forcing a user-provided selection (steepness)
 parameter. The selection and evolution rate (psi = 1) are assumed to be
 homogeneous for the whole phylogenetic network.
 
-\item \code{getGraphLocations}: Get Phylogenetic Graph Locations
+\item \code{getGraphLocations()}: Get Phylogenetic Graph Locations
 
 Takes a phylogenetic tree and a list of species to be removed, and produce a
 phylogenic graph without these species together with the locations of the
 removed species on that graph (i.e., the location where the removed species
 would be found should they be inserted again in the phylogenetic graph).
 
-\item \code{getAncGraphLocations}: Get Ancestral Species Location
+\item \code{getAncGraphLocations()}: Get Ancestral Species Location
 
 Get the location on the phylogenetic graph of the immediate ancestors for a
 list of species. The species of the list remain in the resulting phylogenetic
 graph. This function is useful for estimating the ancestral state of a trait.
 
-\item \code{Locations2PEMscores}: PEM Score Calculation
+\item \code{Locations2PEMscores()}: PEM Score Calculation
 
 Calculates the scores of an extant or ancestral species on a phylogenetic
 eigenvector map (i.e., its value on the eigenvectors of the map) from its
 location on the phylogenetic graph used to build that map.
-}}
 
+}}
 \examples{
 ### Synthetic example
 
 ## This example describes the phyogeny of 7 species (A to G) in a tree with 6
 ## nodes, presented in Newick format, read by function
-## \code{\link{read.tree}} of package ape.
+## read.tree of package ape.
 
 t1 <- read.tree(text=paste(
             "(((A:0.15,B:0.2)N4:0.15,C:0.35)N2:0.25,((D:0.25,E:0.1)N5:0.3,",

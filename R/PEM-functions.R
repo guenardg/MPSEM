@@ -60,7 +60,7 @@
 #' @param upper Upper limit for the L-BFGS-B optimization algorithm
 #' implemented in \code{\link{optim}}.
 #' @param tpall First parameter of function \code{getGraphLocations}:
-#' Phylogenetic tree object with class \sQuote{phylo} (package \link{ape})
+#' Phylogenetic tree object with class \sQuote{phylo} (package \link[ape]{ape})
 #' containing all species (model and target) used in the study.
 #' @param targets Name of the target species to extract using the tree
 #' \code{tpall}.
@@ -138,7 +138,7 @@
 #' 
 #' ## This example describes the phyogeny of 7 species (A to G) in a tree with 6
 #' ## nodes, presented in Newick format, read by function
-#' ## \code{\link{read.tree}} of package ape.
+#' ## read.tree of package ape.
 #' 
 #' t1 <- read.tree(text=paste(
 #'             "(((A:0.15,B:0.2)N4:0.15,C:0.35)N2:0.25,((D:0.25,E:0.1)N5:0.3,",

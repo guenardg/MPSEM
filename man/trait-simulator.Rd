@@ -23,7 +23,7 @@ TraitVarGraphSim(x, variance, distance = "distance", p = 1, ...)
 }
 \arguments{
 \item{tp}{A rooted phylogenetic tree of class \sQuote{phylo} (see package
-\link{ape}).}
+\link[ape]{ape}).}
 
 \item{tw}{Transition matrix giving the probability that the optimum trait
 value changes from one state (row) to another (column) at vertices. 
@@ -80,7 +80,7 @@ set of trees, variance function, and variance function parameters.
 \description{
 Functions to simulate the evolution of a quantitative trait
 along a phylogenetic tree inputted as an object of class \sQuote{phylo}
-(package \link{ape}) or a \code{\link{graph-class}} object.
+(package \link[ape]{ape}) or a \code{\link{graph-class}} object.
 }
 \details{
 Function \code{EvolveOptimMarkovTree} allows one to simulate the
@@ -102,36 +102,36 @@ used to generate covariates drawn from a multi-normal distribution.
 }
 \section{Functions}{
 \itemize{
-\item \code{EvolveOptimMarkovTree}: Trait Optima Simulator
+\item \code{EvolveOptimMarkovTree()}: Trait Optima Simulator
 
 Simulates the evolution of trait optima along a phylogeny as a Markov
 process.
 
-\item \code{TraitOUsimTree}: Trait Value Simulator
+\item \code{TraitOUsimTree()}: Trait Value Simulator
 
 Simulates the evolution of trait values along a phylogeny as a
 Ornstein–Uhlenbeck process.
 
-\item \code{OUvar}: Ornstein–Uhlenbeck Variance Calculator
+\item \code{OUvar()}: Ornstein–Uhlenbeck Variance Calculator
 
 Calculates the expected covariance matrix for a trait evolving following an
 Ornstein–Uhlenbeck process. This function is meant to be used with function
 \code{TraitVarGraphSim}.
 
-\item \code{PEMvar}: Phylogenetic Eigenvector Maps Variance Calculator
+\item \code{PEMvar()}: Phylogenetic Eigenvector Maps Variance Calculator
 
 Calculates the covariance on the basis of the covariance model (power
 function) associated used in calculating Phylogenetic Eigenvector Maps. This
 function is meant to be used with function \code{TraitVarGraphSim}.
 
-\item \code{TraitVarGraphSim}: Covariance-based Trait Evolution Simulator.
+\item \code{TraitVarGraphSim()}: Covariance-based Trait Evolution Simulator.
 
 Simulates trait evolution as covariates drawn from a multi-normal
 distribution whose covariance is estimated using an external function
 (functions \code{OUvar}, \code{PEMvar} provided with the package or any
 user-provided function).
-}}
 
+}}
 \examples{
 opt <- c(-2,0,2) # Three trait optima: -2, 0, and 2
 ## Transition probabilities:
