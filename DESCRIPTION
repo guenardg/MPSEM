@@ -2,8 +2,8 @@ Package: MPSEM
 Type: Package
 Encoding: UTF-8
 Title: Modelling Phylogenetic Signals using Eigenvector Maps
-Version: 0.4-4
-Date: 2024-09-04
+Version: 0.6-1
+Date: 2025-03-26
 Authors@R: c(
     person(
       given = "Guillaume",
@@ -21,9 +21,9 @@ Authors@R: c(
   )
 Description: Computational tools to represent phylogenetic signals using adapted
   eigenvector maps.
-Depends: R (>= 3.0.0), ape
+Depends: R (>= 3.0.0), ape, magrittr, sf
+Imports: MASS, expm
 Suggests: knitr, caper, xfun
-Imports: MASS
 License: GPL-3
 LazyLoad: yes
 NeedsCompilation: yes

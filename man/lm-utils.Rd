@@ -3,70 +3,83 @@
 \name{lm-utils}
 \alias{lm-utils}
 \alias{utils}
-\alias{lmforwardsequentialAICc}
-\alias{lmforwardsequentialsidak}
+\alias{model.data}
+\alias{Psquare}
 \title{Linear Modelling Utility Functions}
 \usage{
-lmforwardsequentialAICc(y, x, object)
+model.data(
+  formula,
+  data,
+  ...,
+  na.action = na.pass,
+  contrasts = NULL,
+  discard.intercept = TRUE
+)
 
-lmforwardsequentialsidak(y, x, object, alpha = 0.05)
+Psquare(obs, prd)
 }
 \arguments{
-\item{y}{A response variable.}
+\item{formula}{an object of class "\code{\link{formula}}" (or one that can be
+coerced to that class): a symbolic description of the model data to be
+prepared. See ‘Details’ in \code{\link{lm}} for further information about
+model specification.}
 
-\item{x}{Descriptors (numeric of \code{\link{factor}}) to be used as
-auxiliary traits.}
+\item{data}{An optional data frame, list or environment (or object coercible
+by \code{\link{as.data.frame}} to a data frame) containing the variables. If
+not found in data, the variables are taken from environment(formula),
+typically the environment from which the function is called.}
 
-\item{object}{A \code{\link{PEM-class}} object.}
+\item{...}{Additional parameters to be passed to the method.}
 
-\item{alpha}{The p-value threshold above which the function will stop adding
-variables.}
+\item{na.action}{A function (of the name of a function) for treating missing
+values (\code{NA}s) (default: \code{na.pass}).}
+
+\item{contrasts}{An optional list. See the \code{contrasts.arg} of
+\code{\link{model.matrix.default}}. (default: \code{NULL}).}
+
+\item{discard.intercept}{A \code{\link{logical}}; whether of not to discard
+the intercept from the model matrix (default: \code{TRUE}).}
+
+\item{obs}{A numeric vector of observations.}
+
+\item{prd}{A numeric vector of model predictions.}
 }
 \value{
-An \code{\link{lm}-class} object.
+\describe{
+  \item{model.data}{A three-member list with member \code{$y} (a vector or
+    matrix of response traits), member \code{$x} (a matrix auxiliary traits
+    coded as numeric values), and member \code{$terms} (A model
+    description).}
+  \item{Psquare}{A numeric value.}
+}
 }
 \description{
 Utility functions to build linear models using Phylogenetic
 Eigenvector Maps among their explanatory variables.
 }
 \details{
-Function \code{\link{lmforwardsequentialsidak}}, performs a forward
-stepwise selection of the PEM eigenvectors until the familywise test of
-significance of the new variable to be included exceeds the p-value 
-threshold \code{alpha}. The familiwise type I error probability is obtained
-using the Holm-Sidak correction of the testwise probabilities, thereby
-correcting for type I error rate inflation due to multiple testing.
-
-Function \code{lmforwardsequentialAICc} carries out forward stepwise
-selection of the eigenvectors as long as the candidate model features a 
-sample-size-corrected Akaike information criterion lower than the previous
-model. The final model should be regarded as overfitted from the
-Neyman-Pearson (\emph{i.e.} frequentist) point of view, but this is the model
-that minimizes information loss from the standpoint of information theory.
+Function \code{model.data} is useful to prepare data to be given as
+response and auxiliary trait(s) to other functions such as
+\code{\link{evolution.model.PEM}}. In general, the implicit constant term
+(intercept) is not useful and can be explicitly discarded.
 }
 \section{Functions}{
 \itemize{
-\item \code{lmforwardsequentialAICc()}: Forward Stepwise Regression AICc
+\item \code{model.data()}: Model Data Preparation
 
-Forward stepwise variable addition using the sample-size-corrected Akaike
-Information Criterion.
+Transforms data from various types into a list containing the response
+trait(s) and a strictly numeric auxiliary traits data matrix.
 
-\item \code{lmforwardsequentialsidak()}: Forward Stepwise Regression Sidak
+\item \code{Psquare()}: Coefficient of Prediction
 
-Forward stepwise variable addition using a Sidak multiple testing
-corrected alpha error threshold as the stopping criterion.
+Calculates the prediction coefficient between observations and model
+predictions.
 
 }}
 \references{
-Burnham, K. P. & Anderson, D. R. 2002. Model selection and multimodel
-inference: a practical information-theoretic approach, 2nd ed.
-Springer-Verlag. xxvi + 488 pp.
-
-Holm, S. 1979. A simple sequentially rejective multiple test procedure.
-Scand. J. Statist. 6: 65-70
-
-Sidak, Z. 1967. Rectangular confidence regions for means of multivariate
-normal distributions. J. Am. Stat. Ass. 62, 626-633
+Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
+maps: a framework to model and predict species traits. Methods in Ecology 
+and Evolution 4: 1120-1131
 }
 \author{
 \packageAuthor{MPSEM}

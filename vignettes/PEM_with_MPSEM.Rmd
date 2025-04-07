@@ -1,0 +1,1006 @@
+---
+title: "A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM) as implemented in R package MPSEM"
+author: "Guillaume Guénard"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+bibliography: ../inst/bib/PEM_with_MPSEM.bib
+vignette: >
+  %\VignetteIndexEntry{A phylogenetic modelling tutorial using Phylogenetic Eigenvector Maps (PEM) as implemented in R package MPSEM}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+hook_output <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  if (!is.null(n <- options$out.lines)) {
+    x <- xfun::split_lines(x)
+    if (length(x) > n) {
+      # truncate the output
+      x <- c(head(x, n), "....\n")
+    }
+    x <- paste(x, collapse = "\n")
+  }
+  hook_output(x, options)
+})
+##
+### Load packages here:
+##
+### Figure counter:
+(
+  function() {
+    log <- list(
+      labels = character(),
+      captions = character()
+    )
+    list(
+      register = function(label, caption) {
+        log$labels <<- c(log$labels, label)
+        log$captions <<- c(log$captions, caption)
+        invisible(NULL)
+      },
+      getNumber = function(label) {
+        which(log$labels == label)
+      },
+      getCaption = function(label) {
+        a <- which(log$labels == label)
+        cap <- log$captions[a]
+        cat(sprintf("Fig. %d. %s\n\n---\n",a,cap))
+        invisible(NULL)
+      }
+    )
+  }
+)() -> figCounter
+```
+
+Package version: `r packageVersion("MPSEM")`
+
+# Introduction
+
+Phylogenetic Eigenvector Maps (**PEM**) is a method to perform phylogenetic
+modelling. Phylogenetic modelling consists in modelling trait evolution and
+predicting trait values using phylogeny as an explanatory factor [@Guenard2013].
+Phylogenetic modelling allows one to predict trait values when it is difficult
+or impractical to obtain them, for instance when species are rare, extinct, or
+when information is needed for several species and trait values are only
+available for a relatively small number of them [@Guenard2011;@Guenard2014].
+
+To apply phylogenetic modelling, one needs to have a set of species with known
+phylogeny and trait values (hereafter referred to as the _model species_) as
+well as to know the locations, with respect to the phylogeny of the models
+species, of the species for which trait values are being predicted (hereafter
+referred to as the _target species_). Phylogenetic modelling can be performed
+jointly with trait correlation modelling: it is possible to use other traits
+with known (or estimable) values for the target species to help predict a trait
+of interest. Phylogenetic trees being acyclic graphs, I will hereby prefer terms
+belonging to the graph theory over terms phylogeneticists may be more familiar
+with. Therefore I will use _edge_ over _branches_ and _vertex_ over _root_,
+_node_ or _tip_; safe in cases where I want to be specific about what a vertex
+represents.
+
+> ### The Phylogenetic eigenvector maps (**PEM**) expression
+> 
+> Statistical maps are a type of geographic map representing the values or
+> states of a variable across space
+> <https://encyclopedia2.thefreedictionary.com/statistical+map).
+> 
+> In a paper entitled "The interpretation of statistical maps", [@Moran1948]
+> described tests of significance of the spatial relationships among values of
+> qualitative variables on statistical maps.
+> 
+> "Moran's eigenvector maps" (**MEM**), an expression coined by @Dray2006,
+> describes the variation of spatial eigenvectors whose eigenvalues are
+> proportional to Moran's I spatial autocorrelation statistics [@Moran1950] of
+> the corresponding eigenvectors. Spatial eigenvectors are mathematical
+> constructs that describe the variation of quantities across space (or time) at
+> different spatial scales. They were originally called Principal Coordinates of
+> Neighbour Matrices by @Borcard2002.
+> 
+> Phylogenetic eigenvector maps (**PEM**) [@Diniz2012; @Guenard2013] are sets of
+> eigenfunctions describing the structure of a phylogenetic graph, which
+> represents either a Darwinian phylogenetic tree or a reticulated tree, i.e., a
+> phylogenetic tree with reticulations. The various eigenvectors describe the
+> variation across a phylogeny at different phylogenetic scales.
+> 
+> Contrary to MEM, the eigenvalues in PEM are not proportional to Moran's I
+> autocorrelation coefficients of the corresponding eigenvectors.
+
+The **PEM** work flow consists in
+
+1) calculating the influence matrix of the graph,
+
+2) specifying a model of trait evolution along the edges of the phylogenetic
+tree,
+
+3) calculating the left eigenvectors of the weighted and centred influence
+matrix and
+
+4) use these eigenvectors as descriptors [@Guenard2013].
+
+An **R** language implementation of that approach is found in package **MPSEM**.
+**MPSEM** was developed to make the aforementioned process as seamless as
+possible. It is a work in progress; I welcome anyone to provide relevant
+suggestions and constructive remarks aimed at making **MPSEM** a better, more
+efficient and user-friendly, interface to phylogenetic modelling.
+
+Assuming package **MPSEM** is installed, the first step to calculate a **PEM**
+is to load package MPSEM, which depends on packages **ape** and **MASS**:
+
+```{r load_package}
+library(MPSEM)
+```
+
+# Preparing the data
+
+For the present tutorial, we will use the data set **perissodactyla** from **R**
+package **caper**. These data from @Purvis1995 are loaded into your **R**
+workspace as follows:
+
+```{r load_data}
+data(perissodactyla,package="caper")
+```
+
+```{r plot_phylogeny, echo=FALSE, fig.height=4, fig.width = 7}
+par(mar=c(2,2,2,2))
+plot(perissodactyla.tree)
+par(mar=c(5,4,4,2))
+figCounter$register(
+  "theTree",
+  "The phylogenetic tree used for this example."
+)
+```
+```{r, plot_phylogeny_cap, echo=FALSE, results='asis'}
+figCounter$getCaption("theTree")
+```
+
+The **perissodactyla** data set contains `perissodactyla.tree`, a phylogenetic
+tree encompassing `r length(perissodactyla.tree$tip.label)` odd-toed ungulate
+species (Fig. `r figCounter$getNumber("theTree")`) and `perissodactyla.data`, a
+data frame containing information four trait for these species, namely, the
+($\log_{10}$) of the adult female weight, gestation weight, and neonatal weight,
+as well a fourth categorical trait telling whether of not the species has
+territorial behaviour.
+
+```{r data_table, echo=FALSE, results="latex"}
+knitr::kable(perissodactyla.data)
+```
+
+There are four species for which territoriality is missing: the Sumatran
+rhinoceros (_Dicerorhinus sumatrensis_), the Javan rhinoceros
+(_Rhinoceros sondaicus_), the mountain tapir (_Tapirus pinchaque_), and the
+South American tapir (_Tapirus terrestris_). For the benefit of this example,
+we performed a quick search over the Internet to attempt at completing this
+data. We came up with the following completion data:
+
+```{r data_completion}
+perissodactyla.data[c(2,9,12,13),"Territoriality"] <- c("No","No","Yes","Yes")
+```
+
+> These data are **not** the result of a professional enquiery and thus must not
+> be used outside of the present example. Poeple interested in the behaviour of
+> these species should seek advice from a competent scientist.
+
+Before going any further, it is important to make sure that the species in the
+tree object are the same and presented in the same order as the ones in the data
+table. Glancing at the data table, species clearly cannot match since the latter
+feature information for only `r nrow(perissodactyla.data)` of the
+`r length(perissodactyla.tree$tip.label)` species in the tree. We will therefore
+match the tip labels of the original tree in the data table using the binary
+(Latin) species names in a character vector `spmatch`. When no matching element
+from the data table is found, the value `NA` appears at the corresponding
+position in `spmatch`. We can therefore use these missing values to reference
+the species that can be dropped from the tree using function `drop.tip()` from
+package **ape** as follows:
+
+```{r droping_species}
+match(
+  perissodactyla.tree$tip.label,
+  perissodactyla.data[,1L]
+) -> spmatch
+
+drop.tip(
+  perissodactyla.tree,
+  perissodactyla.tree$tip.label[is.na(spmatch)]
+) -> perissodactyla.tree
+```
+
+Now that the data match the tree in terms of species content, we then need to
+make sure that species ordering also matches as follows:
+
+```{r check_order}
+cbind(perissodactyla.tree$tip.label, perissodactyla.data[,1L])
+```
+
+Since they do not, we need to recalculate `spmatch` with the new, reduced, tree
+and re-order the data accordingly:
+
+```{r re-order_species}
+match(
+  perissodactyla.tree$tip.label,
+  perissodactyla.data[,1L]
+) -> spmatch
+
+perissodactyla.data[spmatch,] -> perissodactyla.data
+
+all(perissodactyla.tree$tip.label == perissodactyla.data[,1L])
+```
+
+The last code line is just a last check to guarantee that all species names are
+matching. As a last step before we are done with data manipulation, I will put
+the binary names in place of the row names and delete the table's first row:
+
+```{r change_rownames}
+perissodactyla.data[,1L] -> rownames(perissodactyla.data)
+perissodactyla.data[,-1L] -> perissodactyla.data
+```
+
+The data now appear as follows:
+
+```{r re-arranged_data, echo=FALSE, results="latex"}
+knitr::kable(perissodactyla.data)
+```
+
+
+# Calculating **PEM**
+
+## Edge weighting function
+
+As previously announced, I use the vocabulary of the graph theory when
+describing **PEM**: a tree is a (directed) graph, a branch is an edge, and the
+root, nodes, and tips are vertices. **PEM** allows one to specify a model of
+trait evolution along the edges of the tree. The trait evolution model is a
+power function of the edge lengths, with parameters $a$ and $\psi$ describing
+the shape of the relationship between the edge lengths and trait evolution rate:
+
+$$
+w_{a,\psi}(\phi_{j})=
+\begin{cases}
+\psi\phi^{\frac{1-a}{2}} & \phi_{j}>0\\
+0 & \phi_{j}=0,
+\end{cases}
+$$
+where $a$ is the steepness parameter describing how abrupt the changes in trait
+values occur with time following branching, $\psi$ is the evolution rate of the
+trait, and $\phi_{j}$ is the length of edge $j$ [@Guenard2013].
+
+```{r display_weighting, echo=FALSE, fig.height=5, fig.width = 7}
+par(mar=c(4.5,4.5,1,7) + 0.1)
+d <- seq(0, 2, length.out=1000)
+a <- c(0,0.33,0.67,1,0.25,0.75,0)
+psi <- c(1,1,1,1,0.65,0.65,0.4)
+cc <- c(1,1,1,1,1,1,1)
+ll <- c(1,2,2,2,3,3,3)
+trial <- cbind(a, psi)
+colnames(trial) <- c("a","psi")
+ntrials <- nrow(trial)
+nd <- length(d)
+matrix(
+  NA,
+  ntrials,
+  nd,
+  dimnames=list(paste("a=", trial[,"a"], ", psi=", trial[,"psi"], sep=""),
+                paste("d=", round(d,4), sep=""))
+) -> w
+for(i in 1:ntrials)
+  w[i,] <- MPSEM::PEMweights(d, trial[i,"a"], trial[i,"psi"])
+plot(NA, xlim=c(0,2), ylim=c(0,1.6), ylab="Weight", xlab="Distance", axes=FALSE)
+axis(1, at=seq(0,2,0.5), label=seq(0,2,0.5))
+axis(2, las=1)
+text(expression(paste(~~~a~~~~~~~psi)),x=2.2,y=1.57,xpd=TRUE,adj=0)
+for(i in 1:ntrials) {
+  lines(x=d, y=w[i,], col=cc[i], lty=ll[i])
+  text(paste(sprintf("%.2f", trial[i,1]), sprintf("%.2f",trial[i,2]), sep="  "),
+       x=rep(2.2,1), y=w[i,1000], xpd=TRUE, adj=0)
+}
+rm(d,a,psi,cc,ll,trial,ntrials,nd,w,i)
+figCounter$register(
+  "edgeWeighting",
+  paste(
+    "Output of the edge weighting function for different sets of parameters",
+    "$a$ and $\\psi$."
+  )
+)
+```
+```{r, display_weighting_cap, echo=FALSE, results='asis'}
+figCounter$getCaption("edgeWeighting")
+```
+
+As the steepness parameter increases, the weight assigned to a given edge
+increases more sharply with respect to the phylogenetic distance (or
+evolutionary time; Fig. `r figCounter$getNumber("edgeWeighting")`). In the
+context of **PEM**, the edge weight represent the relative rate of evolution of
+the trait; the greater the edge weight, the greater the trait change along that
+edge. When $a=0$, trait evolution is neutral and therefore proceeds by random
+walk along edges. When $a=1$, edge weights no longer increase as a function of
+edge lengths. That situation corresponds to the scenario in which trait
+evolution is driven by the strongest possible natural selection: following a
+speciation event, trait either change abruptly (directional selection) at the
+vertex or do not change at all (stabilizing selection).
+
+Also, the shape parameters may differ for different parts of the phylogenetic
+tree or network. For instance, the trait may have evolved neutrally at a steady
+rate from the base of a tree up to a certain node, and then, may have been
+subjected to different levels of selection pressure and various evolution rate
+from some of the nodes towards their tips.
+
+## Phylogenetic graph
+
+The first step to build a **PEM** is to convert the phylogenetic tree. The is
+done by giving the tree to function `as.graph()` as follows:
+
+```{r convert_to_graph}
+gr1 <- as.graph(perissodactyla.tree)
+```
+
+Here's a snipet showing how the graph container used by **MPSEM** stores graph
+information:
+
+```{r graph_storage,echo=FALSE}
+str(gr1)
+```
+
+The object consists in a data frame containing the vertex information, together
+with another data frame containing the edge information and stored as an
+attribute called `edge`. The vertex data frame may have $0$ or more columns
+containing vertex information and its rows reference the vertices (minimally,
+their name labels, which are stored as the row names of the data frame). In the
+present case, a logical vector created by `as.graph()` and called `$species`
+stores whether a given vertex represents a species (_i.e._, it is a tip) or not
+(_i.e._, it is a node). The `edge` attribute is a data frame containing
+information about the edges of the graph, namely the indices of their origin and
+destination vertices (the first two columns), and an arbitrary number of
+supplementary columns storing any other edge properties. In the present case, a
+numeric vector created by `as.graph()` and called `$distance` stores the
+phylogenetic distances ($\phi_{j}$), which, in this example, correspond to the
+branch lengths of `perissodactyla.tree`.
+
+## Building the eigenvector map
+
+Beginning on MPSEM version 0.6, **PEM** are generated using function `PEM`
+(before version 0.6, a defunct function called `PEM.build()` was used for that
+purpose). That function minimally takes a graph-class object and outputs a
+PEM-class object. By default, the whole graph is assumed to have a single value
+of the steepness parameter (_i.e._, assuming neutral evolution; $a=0$ for all
+the graph's edges) and homogeneous evolution rate (_i.e._, $\psi = 1$ for all
+the graph's edges). Function `PEM()` is called as follows:
+
+```{r PEM1}
+## Calculate the PEM object using the default:
+perissodactyla.PEM <- PEM(gr1)
+
+## Show the PEM object:
+perissodactyla.PEM
+```
+
+
+### Heterogeneous evolutionary process
+
+Heterogeneous evolutionary processes are defined by two linear sub models on the
+graph's edges; one for parameter $a$ and one for parameter $\psi$. Each of these
+models is itself defined using a model matrix and a parameter vector. These
+model matrices have as many rows as the number of edges, and as many columns as
+the numbers of parameters. The model matrix for $a$ ($\mathbf{M}_a$, argument
+`mm_a`) needs at least a single all-ones column working together with a length
+one parameter vector ($\mathbf{b}_a$) to represent a constant value to apply to
+all edges (this is the default for `mm_a`). The value of $a$ for any edge $i$ is
+obtained from the linear combination $\eta_i = \mathbf{M}_a \mathbf{b}_a$ as
+follows:
+
+$$
+a_i = \frac{1}{1 + e^{-\eta_i}},
+$$
+
+which constrains the value of $a_i$ between $0$ and $1$. The default value for
+`mm_a` is a single-column all-ones matrix, whereas the single value for
+$\mathbf{b}_a$ is $-\infty$, which makes $a_i = 0$ for all edges. The linear sub
+model for $\psi$ is defined in a similar way, with the exception that it needs
+no all-ones column. The value of $\psi$ for any edge $i$ is obtained from the
+linear combination $\eta_i = \mathbf{M}_\psi \mathbf{b}_\psi$ as follows:
+
+$$
+\psi_i = \frac{2}{1 + e^{-\eta_i}},
+$$
+
+which constrains the values of $\psi$ between $0$ and $2$. The model matrix for
+$\psi$ ($\mathbf{M}_{\psi}$, argument `mm_psi`) may be a zero-column matrix
+working together with a length zero parameter vector ($\mathbf{b}_{\psi}$)
+implying a constant value $\eta=0$ to apply to all edges.
+
+The default behavior of function `PEM()` for `mm_psi` to be a zero-column matrix
+and `b_psi` to be a zero-length vector thereby applying a constant value of
+$\psi=1$ for all the edges of the graph.
+
+The elements of the model matrices are binary values (_i.e._, taking either
+values $0$ or $1$) which can be defined manually or using functions
+`isUnderVertex()` or `isUnderEdge()`. Function `isUnderVertex()` generates sets
+of vectors with the value $1$ for all edges under a given vertex and $0$
+elsewhere. Likewise function `isUnderEdge()` generates sets of vectors with the
+value $1$ for all edges under a given edge and $0$ elsewhere.
+
+The following figure will help us figure out the indices of the edges involved:
+
+```{r tree_labelled, fig.height=5, fig.width = 7}
+perissodactyla.tree -> tree
+sprintf("N%s",1L:tree$Nnode) -> tree$node.label
+
+par(mar=c(2,2,2,2))
+plot(tree, show.node.label=TRUE)
+
+edgelabels(
+  sprintf("E%d",1L:nrow(tree$edge)),
+  edge=1L:nrow(tree$edge),
+  bg="white",
+  cex=0.75
+)
+```
+```{r tree_labelled_cap, echo=FALSE, results='asis'}
+figCounter$register(
+  "trainingTree",
+  "The labelled training species tree for this example."
+)
+figCounter$getCaption("trainingTree")
+```
+
+For instance, let us define a model matrix with a contrast for all species of
+genus _Equus_, which are located under vertex _N8_, and a second contrast vector
+for the complete lineage leading to species of genus _Tapirus_ from the rest of
+the tree, which are all found under edge _E9_ as follows:
+
+```{r contrast_equus}
+cbind(
+  isUnderVertex(gr1, "N9"),
+  isUnderEdge(gr1,"E11")
+) -> mm
+mm
+```
+
+A **PEM** is generated on the basis of this model matrix using function `PEM()`
+as follows:
+
+```{r calculate_PEM1}
+## Calculate the PEM:
+PEM(
+  x = gr1,
+  a = c(-6,5,8),            ## steepness sub model parameters
+  psi = c(-1,1),            ## evolution rate sub model parameters
+  mm_a = cbind(1, mm),      ## model matrix: steepness sub model
+  mm_psi = mm               ## model matrix: evolution rate sub model
+) -> perissodactyla.PEM
+
+## Show the PEM object:
+perissodactyla.PEM
+
+## Extract the graph from within the PEM-class object:
+gr <- perissodactyla.PEM$graph()
+
+## Show the steepness and evolution rate at the edges:
+round(edge(gr)[,c("a","psi")],3)
+```
+
+In this example, it is assumed that the steepness and evolution rate are
+$a \approx 0.269$ and $\psi \approx 0.538$ among genus _Equus_ (E15--E21),
+$a \approx 0.881$ and $\psi \approx 1.462$ among genus _Tapirus_ (E9--E13), and
+$a \approx 0.002$ and $\psi = 1$ from the root of the tree up to the vertex
+where the two latter genera begin as well as among the other genera (E1--E8 and
+E14). The models may involve more complex designs these two additive terms
+(eg., nested factors, interaction terms) provided that the parameter values are
+known or that sufficient data is available to estimate the parameters.
+
+In addition to the phylogenetic graph, to evolution model matrices, and two
+parameter vectors, function `PEM()` has an argument `d`, the name of the edge
+property where the phylogenetic distances are stored and `sp`, the name of the
+vertex property specifying what vertex is a species. The default values for `d`
+and `sp` are those produced by `as.graph()`, and can therefore be omitted in
+most cases. The pem-class object that is used to store **PEM** information is
+rather complex and we will hereby refrain from browsing through it. Methods
+`as.matrix` and `as.data.frame` enables one to extract the eigenvectors from the
+`PEM-class` object. For a set of $n$ species, these methods return a matrix
+encompassing at most $n - 1$ column vectors that can be used in models to
+represent phylogenetic structure in traits. Here the phylogenetic patterns of
+variation described by two eigenvectors of the **PEM** we calculated above:
+
+```{r Eigenvector_example, fig.height=4, fig.width=7.5}
+tmp <- par(no.readonly = TRUE)
+par(mfrow=c(1,2), mar=c(1.1,1.1,2.6,0.1))
+
+## Singular vectors are extracted using the as.matrix method:
+perissodactyla.U <- as.matrix(perissodactyla.PEM)
+
+plot(perissodactyla.tree, x.lim=60, cex=1.0)
+
+par(mar=c(1.1,0.1,2.6,1.1))
+plot(NA, xlim=c(1,ncol(perissodactyla.U)), ylim=c(1,nrow(perissodactyla.U)),
+     ylab="", xlab="", axes=FALSE, cex=1.5)
+
+axis(3, at=1:ncol(perissodactyla.U), tick=FALSE, cex.axis=1.1,
+     label=parse(text=sprintf("bold(u)[%d]",1:ncol(perissodactyla.U))))
+
+absrng <- max(abs(perissodactyla.U))
+
+for(i in 1:ncol(perissodactyla.U))
+  points(
+    x = rep(i,nrow(perissodactyla.U)),
+    y = 1:nrow(perissodactyla.U),
+    cex = 4*abs(perissodactyla.U[,i])/absrng,
+    bg = grey(c(0,1))[1.5 + 0.5*sign(perissodactyla.U[,i])],
+    pch=22
+  )
+
+par(tmp)
+```
+```{r Eigenvector_example_cap, echo=FALSE, results='asis'}
+figCounter$register(
+  "eigenvectorExample",
+  paste(
+    "Example of a set of 12 eigenvectors obtained from the exemplary data set.",
+    "The size of the markers scales linearly with the absolute value of the",
+    "loadings, whereas the background colors are showing their signs (white:",
+    "negative loadings, black: positive loadings)."
+  )
+)
+figCounter$getCaption("eigenvectorExample")
+```
+
+For instance, the pattern shown by the first eigenvector essentially contrasts
+Equids and the other odd-toed ungulate species, whereas the pattern shown by the
+second eigenvector essentially contrasts tapirs and Rhinocerotids. The other
+$10$ eigenvectors show various other smaller-scale phylogenetic patterns.
+
+## Estimate weighting parameters empirically
+
+Class PEM has a method called `evolution.model` to estimate the best set of
+weighting function parameters to use for modelling, which are often unknown to
+the user. From the initial values provided when creating the PEM-class object,
+method `evolution.model` estimates the parameter empirically using restricted
+maximum likelihood from one or more response variables provided to it through
+its argument `y` and, optionally, from a set of auxiliary traits (argument `x`).
+
+> Method `evolution.model` replaces the defunct function `PEM.fitSimple()`,
+> enabled one to estimate the value of a single $a$ value, with $\psi=1$ for a
+> tree. The framework developed since **MPSEM** version 0.6 enables more
+> flexibility in specifying models with heterogeneous $a$ and $\psi$ for various
+> parts of the phylogenetic network.
+
+Method `evolution.model` requires a response variable (here the neonate weight)
+that will be used to optimize the parameter vectors $\mathbf{b}_a$ and (as
+required) $\mathbf{b}_\psi$ and is called as follows:
+
+
+```{r PEM_opt1}
+perissodactyla.PEM <- PEM(gr1, a = 0)   ## A simpler, single-steepness, model
+
+evolution.model(
+  object = perissodactyla.PEM,
+  y = perissodactyla.data[,"log.neonatal.wt"]
+) -> opt
+
+opt
+```
+
+Method `evolution.model` returns a list with information about the optimization
+process. Alternatively, the response trait (argument `y`) and any other
+auxiliary trait (argument `x`; here the female weight and territoriality) may be
+prepared using function `model.data` and then used as follows:
+
+```{r PEM_opt2}
+perissodactyla.PEM_aux <- PEM(gr1, a = 0)
+
+## Data preparation:
+model.data(
+  formula = log.neonatal.wt~log.female.wt+Territoriality,
+  data = perissodactyla.data
+) -> mdat
+
+evolution.model(
+  object = perissodactyla.PEM_aux,
+  y = mdat$y,
+  x = mdat$x
+) -> opt_aux
+
+opt_aux
+```
+
+Function `model.data` produces a list with the response traits (element `$y`)
+and auxiliary traits (element `$x`) specified by a formula, with the data
+provided using data frame, not unlike what functions like `lm` or `glm` perform
+internally prior to model estimation. It is noteworthy that any call to
+`evolution.model` automatically updates the PEM contained in the PEM object
+provided to the method and makes the generalized least squares estimate of the
+response trait variance (or residual variance with respect to the auxiliary
+trait) available from within the PEM object. Response trait variance estimates
+can later be accessed as follows:
+
+```{r}
+perissodactyla.PEM_aux$S2()
+```
+
+It is noteworthy that estimates of the steepness parameter (stored as
+element `$optim\$par` of the **PEM** objects) and, consequently, the resulting
+phylogenetic eigenvectors, will be different depending on the use of auxiliary
+traits. In the example above, for instance, $\eta_a$ was estimated to
+`r round(opt$par$a, 2)` in the first call, when no auxiliary trait is involved
+and to `r round(opt_aux$par$a, 2)` in the second call, when the female weight is
+used as an auxiliary trait.
+
+## Prediction scores
+
+The location of any target species is some distance from its latest common
+ancestor (LCA) with respect to the species of the graph, which itself is found
+either at a vertex, or on an edge at a specific distance from its origin. Class
+PEM has a `predict` method that returns prediction scores for any graph
+location, be it at a vertex or at any point along an edge. This method
+internally calls one of two embedded functions for any target. These embedded
+functions are called `$predictVertex()` and `$predictEdge()` and return the
+**PEM** prediction scores for any vertex or edge, respectively. PEM method
+`predict` is called as follows:
+
+```{r}
+## Model without an auxiliary trait.
+predict(
+  object = perissodactyla.PEM,
+  newdata = data.frame(
+    row.names = sprintf("target_%d",1:6),
+    ref = c(1,3,5,2,3,4),
+    dist = c(NA,0.1,NA,NA,0.4,1.1),
+    lca = c(0,2,2.3,0,2,1.1)
+  )
+)
+
+## Model with two auxiliary traits.
+predict(
+  object = perissodactyla.PEM_aux,
+  newdata = data.frame(
+    row.names = sprintf("target_%d",1:6),
+    ref = c(1,3,5,2,3,4),
+    dist = c(NA,0.1,NA,NA,0.4,1.1),
+    lca = c(0,2,2.3,0,2,1.1)
+  )
+)
+```
+
+Argument `newdata` is a three-column data frame with the following contents:
+
+_ref_
+: an integer giving the index of the vertex or edge where the LCA is found,
+
+_dist_
+: a numeric vector; for indices in _ref_ that are edges, the distance from the 
+edge origin where the LCA is found, for indices that are vertices, a missing
+values,
+
+_lca_
+: a numeric vector giving the distance of the target from the LCA.
+
+The method returns a matrix of **PEM** scores to be used as predictors with
+an attribute called `"vf"` giving the prediction variance increment associated
+with the distance between the LCA and the target. 
+
+## Phylogenetic modelling
+
+To model trait values, **PEM** are used as descriptors in other modelling
+method. Any suitable method can be used. The eigenvectors from the **PEM** are
+obtained from method `as.matrix` or `as.data.frame` as follows:
+
+```{r extract}
+## Extract the eigenvector as a matrix:
+as.matrix(perissodactyla.PEM)
+
+## Extract the eigenvector as a data frame:
+as.data.frame(perissodactyla.PEM)
+```
+
+Package **MPSEM** includes a framework for ordinary least squares (OLS)
+regression based on **R**'s `lm` function and methods. This framwork is
+implemented by function `pemlm`, which called as follows:
+
+```{r build_pemlm_models}
+## A first pemlm model without an auxiliary trait:
+pemlm(
+  log.neonatal.wt~1,
+  perissodactyla.data,
+  perissodactyla.PEM
+) -> lm1
+
+## Summary of the first model:
+summary(lm1)
+
+## Anova of the first model:
+anova(lm1)
+
+## A second pemlm model with two auxiliary traits:
+pemlm(
+  log.neonatal.wt~log.female.wt+Territoriality,
+  perissodactyla.data,
+  perissodactyla.PEM_aux
+) -> lm2
+
+## Summary of the second model:
+summary(lm2)
+
+## Anova of the second model:
+anova(lm2)
+```
+
+Models produced by `pemlm` do not immediately include phylogenetic eigenvectors.
+The process for adding phylogenetic eigenvectors to the model is mediated using
+a set of embedded functions, a complete description of which would be beyond the
+scope of the present document. Embedded function `$forward` performs stepwise
+variable addition of the **PEM** eigenfunctions on the basis of the corrected
+Akaike Information Criterion (AICc) [@Hurvich1993] as follows:
+
+```{r forward_select_pemlm_models}
+## Adding eigenfunctions to the first model until the smallest AICc is reached
+lm1$forward()
+lm1
+
+## Calculating the summary and anova 
+summary(lm1)
+anova(lm1)
+
+## Adding eigenfunctions to the second model until the smallest AICc is reached
+lm2$forward()
+lm2
+
+summary(lm2)
+anova(lm2)
+```
+
+## Making predictions
+
+The perisoadctyla data set has one missing gestation weight value for the
+mountain tapir (_Tapirus pinchaque_). Here, we will exemplify how to make
+predictions by estimating its most likely value. First, we need a graph (here a
+tree) for all the species with the exception of _Tapirus pinchaque_, and the
+coordinates of that species in that graph. This is accomplished by method
+`locate` as follows:
+
+```{r locate1}
+sp <- "Tapirus pinchaque"     ## A selected species.
+train <- locate(gr1, sp)      ## The locate method.
+train
+```
+
+Here, we can se that _Tapirus pinchaque_ is located at distance
+`r train$location$ladist` from and LCA located at distance
+`r train$location$dist` along an edge with index `r train$location$ref`. The
+`locate` method returns a two-element list whose first member (`$x`) is the
+graph where the target species have been removed (ie. the residual graph) and
+whose second member (`$location`) a three-column date frame of the graph
+location (columns _ref_, _dist_, and _lca_ described previously) for each of the
+targets. We then need to prepare the model data for all the traits available as
+follows:
+
+```{r}
+## Prepare the model data:
+model.data(
+  formula = log.gestation.length~log.female.wt+log.neonatal.wt+Territoriality,
+  data = perissodactyla.data
+) -> mdat
+```
+
+For making predictions, we need to build a **PEM** using residual graph obtain
+from method `locate` as follows:
+
+```{r}
+## Initial PEM (single a = 0.5, single psi = 1) built from the residual graph:
+pem.train <- PEM(train$x, a = 0)
+
+## Estimate the evolution model:
+evolution.model(
+  object = pem.train,
+  y = mdat$y[names(mdat$y) != sp],
+  x = mdat$x[rownames(mdat$x) != sp,]
+) -> opt
+
+## Build a linear model:
+pemlm(
+  formula = log.gestation.length~log.female.wt+log.neonatal.wt+Territoriality,
+  data = perissodactyla.data %>% .[rownames(.) != sp,],
+  pem = pem.train
+) -> lm3
+
+## Summary and anova for the auxiliary trait model:
+summary(lm3)
+anova(lm3)
+
+## Add the phylogenetic eigenfunctions:
+lm3$forward()
+
+## Summary and anova for the final model:
+summary(lm3)
+anova(lm3)
+```
+
+Finally, we use the `predict()` method (for `pemlm-class` objects) to obtain the
+predicted value as follows:
+
+```{r}
+## Make the prediction:
+predict(
+  object = lm3,
+  newdata = perissodactyla.data[sp,],
+  newloc = train$location
+) -> prd
+prd
+
+## Substitute the missing value for the estimated gestation time:
+perissodactyla.data[sp,"log.gestation.length"] <- prd
+```
+
+
+# Cross-validation of **PEM** predictions
+
+Here is and example of how to perform a leave-one-out cross-validation of a data
+set using the **R** code featured in the previous sections. Predictions will be
+added to table to a table called `perissodactyla.pred`. The cross-validation is
+carried out as follows:
+
+```{r cross-validation}
+## Table storing the results:
+data.frame(
+  observed = perissodactyla.data$log.neonatal.wt,
+  auxiliary = NA,
+  predictions = NA,
+  lower = NA,
+  upper = NA,
+  row.names = rownames(perissodactyla.data)
+) -> perissodactyla.pred
+
+## Obtaining the updated model data:
+model.data(
+  formula = log.neonatal.wt~log.female.wt+log.gestation.length+Territoriality,
+  data = perissodactyla.data
+) -> mdat
+
+## For each species i:
+for(i in 1L:nrow(perissodactyla.pred)) {
+  
+  ## Calculate the residual graph and location:
+  train <- locate(gr1, rownames(perissodactyla.pred)[i])
+  
+  ## Calculate a PEM:
+  pem.train <- PEM(train$x, a = 0)
+  
+  ## Estimate the evolution model:
+  evolution.model(
+    object = pem.train,
+    y = mdat$y[-i],
+    x = mdat$x[-i,]
+  ) -> opt
+  
+  ## Build an empty (auxiliary trait only) pemlm model:
+  pemlm(
+    formula = log.neonatal.wt~log.female.wt+log.gestation.length+Territoriality,
+    data = perissodactyla.data[-i,],
+    pem = pem.train
+  ) -> lm_cv
+  
+  ## Make prediction using the empty model:
+  predict(
+    lm_cv$auxModel,
+    perissodactyla.data[i,]
+  ) -> perissodactyla.pred[i,2L]
+  
+  ## Add the PEM eigenfunction(s) on the basis of the AICc:
+  lm_cv$forward()
+  
+  ## Make the prediction using the PEM-based model, including the limits of the
+  ## 95% prediction interval:
+  predict(
+    object = lm_cv,
+    newdata = perissodactyla.data[i,],
+    newloc = train$location,
+    interval = "prediction"
+  ) -> perissodactyla.pred[i,3L:5L]
+}
+
+## Prediction coefficient using the auxiliary traits alone:
+Psquare(perissodactyla.pred$observed, perissodactyla.pred$auxiliary)
+
+## Prediction coefficient using the PEM eigenfunctions:
+Psquare(perissodactyla.pred$observed, perissodactyla.pred$predictions)
+```
+
+```{r plot_pred_obs, echo=FALSE, fig.height=7, fig.width=7}
+## Calculate the range of the whole data (predictions and interval limits):
+rng <- range(perissodactyla.pred)
+
+## Save the graphical parameters:
+p <- par(no.readonly = TRUE)
+
+## Generates an empty plot:
+par(mar=c(5,5,2,2))
+plot(NA, xlim=rng, ylim=rng, xlab="Observed (log) neonatal",
+     ylab="predicted (log) neonatal", las=1, asp=1)
+
+## Show the predictions without the PEM:
+points(x=perissodactyla.pred$observed, y=perissodactyla.pred$auxiliary, pch=21,
+       bg="blue")
+
+## Show the predictions and their prediction intervals with the PEM:
+arrows(x0=perissodactyla.pred$observed, x1=perissodactyla.pred$observed,
+       y0=perissodactyla.pred$lower, y1=perissodactyla.pred$upper, code=3,
+       angle=90, length=0.05)
+points(x=perissodactyla.pred$observed, y=perissodactyla.pred$predictions,
+       pch=21, bg="black")
+
+## 1:1 line:
+abline(0,1)
+
+## Restore the graphical parameters:
+par(p)
+
+figCounter$register(
+  "crossPreds",
+  paste(
+    "Leave-one-out crossvalidated prediction of the neonatal weight for",
+    nrow((perissodactyla.data)),
+    "odd-toed ungulate species."
+  )
+)
+```
+```{r plot_pred_obs_cap, echo=FALSE, results='asis'}
+figCounter$getCaption("crossPreds")
+```
+
+From the present cross-validation, we found that the ($\log_{10}$) neonatal body
+mass can be predicted with a cross-validated $R^{2}$ of
+`r round(Psquare(perissodactyla.pred$observed, perissodactyla.pred$predictions),2)`
+(Fig. `r figCounter$getNumber("crossPreds")`).
+
+# Other utility functions
+
+## Influence matrix
+
+The influence matrix is used internally to calculate **PEM**. It is a matrix
+having as many rows as the number of vertices (species + nodes) and as many
+columns as the number of edges. Any given element of the influence matrix is
+coding whether a vertex, which is represented a row of the matrix is influenced
+an edge, which is represented by a column of the matrix. In the context of
+**PEM**, a vertex is influenced by an edge when the former has ancestors on the
+latter or, in other words, when an edge is on the path leading from a tip to the
+root of the tree. The influence matrix is obtained as follows:
+
+```{r influence_matrix}
+InflMat(gr1) -> res
+res
+```
+
+## Update and a **PEM** with new parameters
+
+The calculation of the influence matrix performed by `PEM()` for a given
+phylogenetic graph need not be done every time new weighting function parameters
+are to be tried. For that reason, **MPSEM** provides an update method for the
+PEM class that takes a previously calculated **PEM** object, applies new
+edge weighting, and recalculates the phylogenetic eigenvectors:
+
+```{r PEM_updater}
+## Update the PEM object, setting a to 0.9:
+update(perissodactyla.PEM, a = log(0.9/(1 - 0.9)), psi=NULL)
+
+## Access the parameter values
+perissodactyla.PEM$par()
+
+## The parameter values are also available from the edge properties:
+edge(perissodactyla.PEM$graph())
+```
+
+The response trait variance estimates will not readily be updated by the update
+method 
+
+```{r forcedNewParameters}
+## Old trait variance value:
+perissodactyla.PEM$S2()
+
+## Recalculating trait variance:
+perissodactyla.PEM$S2(y = perissodactyla.data[,"log.neonatal.wt"])
+
+## The new trait variance value is available thereafter:
+perissodactyla.PEM$S2()
+```
+
+# References

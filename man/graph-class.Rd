@@ -3,27 +3,180 @@
 \docType{class}
 \name{graph-class}
 \alias{graph-class}
-\alias{graph}
 \alias{print.graph}
+\alias{nedge.graph}
+\alias{geometry.graph}
+\alias{geometry<-.graph}
+\alias{$<-.graph}
+\alias{as.phylo.graph}
+\alias{as.graph.phylo}
+\alias{plot.graph}
+\alias{locate.graph}
 \title{Class and Method for Directed Graphs}
 \format{
-A \code{graph-class} object contains:
-\describe{
-  \item{ edge }{ A list whose first two unnamed members are the indices of
-  the origin and destination vertices. Additional members must be named and
-  are additional edge properties (e.g. length). }
-  \item{ vertex }{ A list that optionally contains vertex properties, if any
-  (or an empty \code{\link{list}} if none). }
-}
+Minimally, a \code{graph-class} object contains a
+\code{\link{data.frame}} object that contains vertex properties (or a
+zero-column data.frame when there is no vertex property), to which it adds a
+\code{edge} attribute. The \code{edge} attribute is an other
+\code{\link{data.frame}} object with its first two integer columns called
+\code{from} and \code{to} that contain the indices of the origin and
+destination vertices, respectively, for each of the edges in addition to any
+number of edge properties.
+
+A vertex property commonly found is a \code{graph-class} object is a
+\code{\link{logical}} property called `species` that identifies which vertex
+has trait values. Also, an edge property commonly found in a
+\code{graph-class} object is a numeric property called `distance` that gives
+the evolutionary distance (or length) associated with the edges. These two
+additional properties are mandatory for calculating a \code{\link{PEM}}, but
+they may bear different names than the ones previously mentioned.
 }
 \usage{
 \method{print}{graph}(x, ...)
+
+\method{nedge}{graph}(x)
+
+\method{geometry}{graph}(x)
+
+\method{geometry}{graph}(x) <- value
+
+\method{$}{graph}(x, name) <- value
+
+\method{as.phylo}{graph}(x, ...)
+
+\method{as.graph}{phylo}(x, ...)
+
+\method{plot}{graph}(
+  x,
+  y,
+  ylim,
+  use.geometry = TRUE,
+  pch = 21L,
+  bg = "white",
+  cex.min = 2,
+  cex.max = cex.min,
+  cex.lab = cex.min/3,
+  axes = FALSE,
+  xlab = "",
+  ylab = "",
+  edge.color = list("black", "red"),
+  length = 0.05,
+  code = 2L,
+  show.vertex.labels = TRUE,
+  direction = c("rightwards", "leftwards", "upwards", "downwards"),
+  ...
+)
+
+\method{locate}{graph}(x, target, ...)
 }
 \arguments{
-\item{x}{An object of \code{\link{graph-class}}.}
+\item{x}{A \code{graph-class} object.}
 
-\item{...}{Additional parameters to be passed to the method. Currently
-ignored.}
+\item{...}{Additional parameters to be internally passed to other functions
+or methods.}
+
+\item{value}{A vector or \code{\link{data.frame}} containing the values to be
+given to the \code{graph-class} object.}
+
+\item{name}{A literal character string or a \code{\link{name}}.}
+
+\item{y}{An optional set of numeric value available at the vertices to be
+shown using marker of different sizes or background colors.}
+
+\item{ylim}{A length 2 numeric vector giving minimum and maximum bounds for
+\code{y}. It is only pertinent when \code{y} is given. When omitted, it is
+estimated from the range of \code{y} values.}
+
+\item{use.geometry}{A logical value specifying whether to plot the graph
+using its specified geometry, if available (default: \code{TRUE}). When no
+geometry is available or if \code{use.geometry = FALSE}, the graph is plotted
+using a back bone tree (obtained using the \code{as.phylo} method) with added
+supplementary edges.}
+
+\item{pch}{An integer. Graphical parameter \code{pch} used internally by
+function \code{\link{points}} (default: 21, a round marker).}
+
+\item{bg}{Either a single character string specifying a single background
+color or a vector of colors used as a color scale to display the values of
+\code{y} (default: \code{"white"}).}
+
+\item{cex.min}{A numeric value giving the marker size used for the smallest
+value of \code{y} or for all markers when \code{y} is \code{NULL} (default:
+\code{2}).}
+
+\item{cex.max}{A numeric value. When \code{y} is not \code{NULL}, the marker
+size used for the largest value of \code{y} (default: \code{cex.min}).}
+
+\item{cex.lab}{A numeric value specifying the size of the vertex labels
+(default: \code{cex.min/3}).}
+
+\item{axes}{A logical; whether to show the axis graduation of the plot
+(default: \code{FALSE}).}
+
+\item{xlab}{A character string; the title of the abscissa of the plot
+(default: \code{""}).}
+
+\item{ylab}{A character string; the title of the ordinates of the plot
+(default: \code{""}).}
+
+\item{edge.color}{A list of two colors or two color vectors (mode: character)
+specifying the color (or colors) of the edges. The first elements is used for
+the backbone tree when not using the geometry or all edges when using the
+geometry. The second element is only used to specify the color (or colors) of
+the supplementary edges when not using the geometry. The default is
+\code{list("black","red")}.}
+
+\item{length}{A numeric value giving the size of the arrow heads (in inches,
+Default: \code{0.05}).}
+
+\item{code}{An integer determining kind of arrows to be drawn (see
+\code{\link{arrows}} for the details, default: \code{2}).}
+
+\item{show.vertex.labels}{A logical specifying whether to plot the vertex
+labels (default: \code{TRUE}).}
+
+\item{direction}{One of character strings \code{"rightwards"} (the default),
+\code{"leftwards"}, \code{"upwards"}, or \code{"downwards"}, or any
+unambiguous thereof, specifying the direction of the plot, when not using the
+geometry.}
+
+\item{target}{An integer or character vector containing the indices or names
+to be specified as target vertices.}
+}
+\value{
+\describe{
+  \item{print}{\code{NULL}.}
+  \item{nedge}{An integer; the number of edges in the graph.}
+  \item{edge}{A data frame of the edge information, namely the origin and
+  destination of each edge (integers), and, possibly, additional edge
+  features.}
+  \item{edgenames}{A vector of type \sQuote{character} giving the name of
+  each of the edges.}
+  \item{geometry}{A geometry object (e.g., points, lines, polygons).}
+  \item{as.phylo}{An object of class \sQuote{phylo}, possibly with an
+  attribute called \sQuote{discarded} containing the edges that had been
+  discarded in order to coerce the graph into a tree and (in every cases) an
+  attribute called \sQuote{subst} containing an integer vector giving the
+  indices of the vertices on the tree plot.}
+  \item{plot}{When the geometry is used, the graph object given through
+  argument \code{x}, when the geometry is not used, the object of class
+  \sQuote{phylo} produced internally be the \code{as.phylo} method, with an
+  attribute called \sQuote{xy} containing the display coordinates of the tree
+  plot.}
+  \item{locate}{A list with two elements: a \code{graph-class} object
+  (\code{$x}) and a data frame (\code{$location}). The \code{graph-class}
+  object is the residual graph after the targets have been removed and has
+  two \code{\link{logical}} attributes; one called "removedVertex" used to
+  identify any vertex of the input graph (argument \code{x}) that is no
+  longer found in the residual graph, and one called "removedEdge" used to
+  identify any edge of the input graph that is no longer found in the
+  residual graph. The data frame has three columns; a first column called
+  `ref` giving the index of the vertex or edge where each target can be
+  found, a second column called `dist` giving the (evolutionary) distance
+  along the edge where the target can be found (\code{NA} for a target
+  located at a vertex) and `lca` giving the distance between the latest
+  common ancestor of the target in the graph and the target itself.}
+}
 }
 \description{
 Class and methods to handle MPSEM graphs.
@@ -32,6 +185,44 @@ Class and methods to handle MPSEM graphs.
 Prints user-relevant information about the graph: number of edges
 and vertices, edge and vertex labels, addition edge properties and vertex
 properties.
+
+Function \code{as.graph()} uses the MPSEM graph functions to convert a
+phylogenetic tree of class \sQuote{phylo} (see
+\code{\link[ape]{ape-package}}) to a \code{\link{graph-class}} object. It
+recycles tip labels. It also creates default node labels if they were absent
+from the \sQuote{phylo} object, and uses them as vertex labels. The resulting
+graph can then be edited to represent cases that do not strictly conform to
+a tree topology.
+
+The method \code{as.phylo()} convert a \code{graph-class} object into a
+class \sQuote{phylo} objects as defined in package ape. The function ensures
+that all vertices have only a single incoming edge. When multiple incoming
+edges are found, the one originating from the vertex that is the closer from
+the origin (or root) of the graph is kept and any other is discarded. The
+discarded edges are gathered into a data frame which is appended to the
+returned class \sQuote{phylo} object as an attribute called \code{discarded}.
+Another attribute called \code{subst} is also appended to the returned
+object; it contains the indices of the graph vertices as they appear in the
+returned class \sQuote{phylo} object.
+
+The plot method follows two possible approaches. The graph may be assigned
+a geometry (see \code{\link[sf]{sf-package}}), in which case the latter is
+used to plot the graph provided that argument \code{use.geometry = TRUE},
+which is the default. If the graph has no geometry (or if it has one, but
+argument \code{use.geometry = FALSE}), the graph is plotted as an augmented
+tree (or as a regular tree if it is a non-reticulated graph). This tree is
+obtained using the \code{as.phylo} method for graph-class objects herein
+described. #' Package ape's internal functions are used to determine the
+coordinates of the plot. For a reticulated graph, the discarded edges are
+added to the backbone tree obtained from the \code{as.phylo} method, thereby
+resulting in an augmented tree. The \code{plot} method also has the
+possibility to display trait values at the vertices using maker sizes.
+
+Evolutionary distances (ie., edge lengths) are abstract measurements that
+may represent time (eg., ka, Ma), the number of generations, or any relevant
+metric of the evolutionary processes occurring along the edges of the
+evolutionary graph. This information can be included in the graph as an edge
+property (see `Format`).
 }
 \section{Functions}{
 \itemize{
@@ -39,14 +230,136 @@ properties.
 
 A print method for graph-class objects.
 
+\item \code{nedge(graph)}: Number of Edges
+
+Get the number of edges in a graph.
+
+\item \code{geometry(graph)}: Extract Geometry
+
+Extracts a geometry from a \code{graph-class} object.
+
+\item \code{geometry(graph) <- value}: Assign Geometry
+
+Assigns a geometry to a \code{graph-class} object.
+
+\item \code{`$`(graph) <- value}: Insert or Replace a Vertex Property
+
+Insert or replace a vertex property into a \code{graph-class} object.
+
+\item \code{as.phylo(graph)}: Transformation to a Tree
+
+An \code{\link[ape]{as.phylo}} method to transforms a graph-class object into
+a "phylo" class object.
+
+\item \code{as.graph(phylo)}: Transformation From a Tree Into a Graph
+
+An \code{\link{as.graph}} method to transforms a "phylo" class object into a
+\code{graph-class} object.
+
+\item \code{plot(graph)}: Plot Graph
+
+A plotting method for graph-class objects.
+
+\item \code{locate(graph)}: Locate Graph Targets
+
+Calculate target locations and residual graph from an initial graph and a set
+of targets.
+
 }}
+\examples{
+## Create an exemplary graph:
+data.frame(
+  species = rep(TRUE,13),
+  type = c(2,2,3,1,2,2,2,2,2,2,3,3,3),
+  x = c(1,3,4,0,1.67,4,1,1.33,2.33,3.33,4.33,4,5),
+  y = c(1,1,1,0,0.5,0,-1,0,0,-0.5,-1,-0.5,-0.5),
+  row.names = sprintf("V\%d",1:13)
+) \%>\%
+  st_as_sf(
+    coords=c("x","y"),
+    crs = NA
+  ) \%>\%
+  graph \%>\%
+  add.edge(
+    from = c(1,2,1,5,4,4,5,9,4,8,9,4,7,7,6,6,9,10,10),
+    to = c(2,3,5,2,1,5,9,2,8,9,6,7,8,9,3,13,10,12,11),
+    data = data.frame(
+      distance = c(4.2,4.7,3.9,3.0,3.6,2.7,4.4,3.4,3.6,3.3,
+                   4.8,3.2,3.5,4.4,2.5,3.4,4.3,3.1,2.2),
+      row.names = sprintf("E\%d",1:19)
+    )
+  ) -> x
+
+## The object appears as follows:
+x
+
+## The number of vertices is the number of rows in the data frame:
+nrow(x)
+
+## The number of vertex properties is the number of columns in the data
+## frame:
+ncol(x)
+
+## Methods defined for data frames are applicables to graph-class objects:
+dim(x)
+rownames(x)
+colnames(x)
+dimnames(x)
+labels(x)
+names(x)
+as.data.frame(x)
+
+## MPSEM defines new generics and implements methods for them:
+nedge(x)       ## To obtain the number of edges
+edge(x)        ## To obtain the edge data frame
+edgenames(x)   ## To obtain the names of the edges
+geometry(x)    ## To obtain any geometry associated with the edges
+
+
+edgenames(x) <- NULL
+edgenames(x)
+
+edgenames(x) <- sprintf("E_\%d",1:nedge(x))
+edgenames(x)
+edge(x)
+
+## Plotting the graph:
+plot(x)
+plot(x, use.geometry=FALSE)
+
+geom <- geometry(x)
+geometry(x) <- NULL    ## Removing the geometry.
+plot(x)
+
+geometry(x) <- geom    ## Putting the geometry back into place.
+plot(x)
+
+## The graph is transformed or coerced into a phylogenetic tree as follows:
+phy <- as.phylo(x)
+plot(phy, show.node.label=TRUE)
+
+## A phylogenetic tree with 7 tips and 6 internal nodes:
+tree1 <- read.tree(
+  text=paste(
+  "(((A:0.15,B:0.2)N4:0.15,C:0.35)N2:0.25,((D:0.25,E:0.1)N5:0.3,",
+  "(F:0.15,G:0.2)N6:0.3)N3:0.1)N1:0.1;", sep=""))
+
+## Default: excluding the root vertex:
+as.graph(tree1)
+
+## Including the root vertex:
+as.graph(tree1, includeRoot = TRUE)
+
+
+}
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
 maps: a framework to model and predict species traits. Methods in Ecology 
 and Evolution 4: 1120-1131
 }
 \seealso{
-\code{\link{graph-functions}}.
+\code{\link{graph-functions}}, \code{\link[ape]{plot.phylo}}, and
+\code{\link[sf]{plot.sf}}.
 }
 \author{
 \packageAuthor{MPSEM}

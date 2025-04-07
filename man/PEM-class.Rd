@@ -5,64 +5,107 @@
 \alias{PEM-class}
 \alias{PEM}
 \alias{print.PEM}
+\alias{as.matrix.PEM}
 \alias{as.data.frame.PEM}
+\alias{update.PEM}
+\alias{evolution.model.PEM}
 \alias{predict.PEM}
 \title{Class and Methods for Phylogenetic Eigenvector Maps (PEM)}
 \format{
 A \code{\link{PEM-class}} object contains:
 \describe{
-  \item{ x }{ The \code{\link{graph-class}} object that was used to
-  build the PEM (see \code{\link{PEM.build}}). }
-  \item{ sp }{ A \code{\link{logical}} vector specifying which of the
-  vertices are tips. }
-  \item{ B }{ The influence matrix for those vertices that are tips. }
-  \item{ ne }{ The number of edges. }
-  \item{ nsp }{ The number of species (tips). }
-  \item{ Bc }{ The column-centred influence matrix. }
-  \item{ means }{ The column means of \code{B}. }
-  \item{ dist }{ Edge lengths. }
-  \item{ a }{ The steepness parameter (see \code{\link{PEM.build}} for
-  details). }
-  \item{ psi }{ The relative evolution rate along the edges (see
-  \code{\link{PEM.build}} for details). }
-  \item{ w }{ Edge weights. }
-  \item{ BcW }{ The weighted and column-centred influence matrix. }
-  \item{ d }{ The singular values of \code{BcW}. }
-  \item{ u }{ The eigenvectors (left singular vectors) of \code{BcW}. }
-  \item{ vt }{ The right singular vectors of \code{BcW}. }
+  \item{d}{the name of the edge property containing the phylogenetic
+    distances (see argument \code{d} above),}
+  \item{sp}{the name of the vertex property identifying which which of the
+    vertices are bearing trait values (see argument \code{sp} above),}
+  \item{tol}{the tolerance value (see argument \code{tol} above),}
+  \item{mm}{a list with the model matrices (see arguments \code{mm_a} and
+    \code{mm_psi} above) that are used to estimate the steepness and relative
+    evolution rate throughout the graph manifold,}
+  \item{nsp}{the number of vertices that bear trait values,}
+  \item{B}{the influence matrix (see \code{\link{inflMat}}),}
+  \item{print}{function; prints the PEM object,}
+  \item{graph}{function; returns the graph object used to calculate the PEM,}
+  \item{pem}{function; returns a list of components (ie., vectors and
+    matrices) involved in PEM calculation,}
+  \item{par}{function; returns the actual model parameter values as a list,}
+  \item{nodal}{function; returns the steepness and evolution rates at any
+    given vertex of the graph,}
+  \item{update}{function; updates the PEM with a new set of parameters,}
+  \item{var}{function; returns the PVCV matrix: phylogenetic variance and
+    covariances matrix among the vertices with trait values,}
+  \item{inv_var}{function; returns the inverse PVCV matrix,}
+  \item{logdet}{function; returns the natural logarithm of the PVCV matrix
+    determinant,}
+  \item{dev}{function; calculates the deviance of a target trait, or many
+    such traits, with respect to the PVCV matrix, optionally conditional to
+    one or more auxiliary trait(s),}
+  \item{S2}{function; calculates the variance(s) of one or more trait(s)
+    with respect to the PVCV matrix or the residual variance(s) of said
+    trait(s) conditioned to one or more auxiliary trait(s),}
+  \item{predictVertex}{function; calculates the PEM prediction scores at the
+    graph's vertices, and}
+  \item{predictEdge}{function; calculates the PEM prediction scores at the
+    graph's edge.}
 }
-In addition to these standard component, function,
-\code{\link{PEM.fitSimple}} and \code{\link{PEM.forcedSimple}} add the
-following members, which are necessary to make predictions:
-\describe{
-  \item{ S2 }{ The variances of response data (one value for each response variable).
-  }
-  \item{ y }{ A copy of the response data. }
-  \item{ opt }{ The list returned by \code{\link{optim}}. }
-}
-The estimated weighting parameters are also given as an edge property.
 }
 \usage{
+PEM(
+  x,
+  ...,
+  a = -Inf,
+  mm_a = matrix(1, nedge(x), 1L),
+  psi = NULL,
+  mm_psi = matrix(NA, nedge(x), 0L),
+  d = "distance",
+  sp = "species",
+  tol = .Machine$double.eps^0.5
+)
+
 \method{print}{PEM}(x, ...)
+
+\method{as.matrix}{PEM}(x, ...)
 
 \method{as.data.frame}{PEM}(x, row.names = NULL, optional = FALSE, ...)
 
-\method{predict}{PEM}(
-  object,
-  targets,
-  lmobject,
-  newdata,
-  interval = c("none", "confidence", "prediction"),
-  level = 0.95,
-  ...
-)
+\method{update}{PEM}(object, a, psi, ...)
+
+\method{evolution.model}{PEM}(object, y, ..., x = NULL)
+
+\method{predict}{PEM}(object, newdata, ...)
 }
 \arguments{
-\item{x}{A \code{\link{PEM-class}} object containing a Phylogenetic
-Eigenvector Map.}
+\item{x}{A \code{\link{graph-class}} object, a \code{\link{PEM-class}}
+object, or a matrix containing auxiliary traits.}
 
 \item{...}{Additional parameters to be passed to the method. Currently
 ignored.}
+
+\item{a}{A numeric vector of linear coefficients to estimate the steepness in
+the trait evolution model; it must have as many values as the number of
+columns in argument \code{mm_a} (default: \code{-Inf}).}
+
+\item{mm_a}{A numeric matrix with as many rows as the number of
+edges and as many columns as the number of values of argument \code{a}
+(default: an all-ones single-column matrix).}
+
+\item{psi}{A numeric vector of linear coefficients to estimate the evolution
+rate in the trait evolution model; it must have as many values as the number
+of columns in argument \code{mm_psi} (default: \code{NULL}, meaning an
+homogeneous evolution rate throughout the graph).}
+
+\item{mm_psi}{A numeric matrix with as many rows as the number of
+edges and as many columns as the number of values of argument \code{psi}
+(default: a zero-column matrix).}
+
+\item{d}{A character string; the name of the (numeric) edge property
+containing the phylogenetic distances (default: \code{"distance"}).}
+
+\item{sp}{A character string; the name of the (logical) vertex property
+containing vertex property (default: \code{"species"}).}
+
+\item{tol}{A numeric; the lowest singular value above which to retain a
+singular vector as part of a PEM (default: \code{.Machine$double.eps^0.5}).}
 
 \item{row.names}{Included for method consistency reason; ignored.}
 
@@ -70,53 +113,256 @@ ignored.}
 
 \item{object}{A \code{\link{PEM-class}} object.}
 
-\item{targets}{Output of \code{\link{getGraphLocations}}.}
+\item{y}{A vector or matrix of (numeric) trait values to estimate the
+parameters of the trait evolution model.}
 
-\item{lmobject}{An object of class \sQuote{lm} (see \code{\link{lm}} for
-details).}
-
-\item{newdata}{Auxiliary trait values.}
-
-\item{interval}{The kind of limits (confidence or prediction) to return with
-the predictions; \code{interval="none"}: do not return a confidence interval.}
-
-\item{level}{Probability associated with the confidence of prediction interval.}
+\item{newdata}{A three-column data frame giving the locations of a set of
+targets in the graph such as the one provided by function
+\code{\link{locate.graph}} (element \code{$location}; see Details below).}
 }
 \description{
-Class and methods to handle Phylogenetic Eigenvector Maps (PEM).
+Class and methods to calculate and manipulate Phylogenetic
+Eigenvector Maps (PEM).
 }
 \details{
-The \code{print.PEM} method provides the number of eigenvectors, the
-number of observations these vectors are spanning, and their associated
-eigenvalues.
+The class is implemented using function \code{PEM}. It provides
+methods \code{\link{as.matrix}} and \code{\link{as.data.frame}} to extract
+the phylogenetic vectors in the forms of a matrix or a data frame,
+respectively, an \code{update} method to recalculate an existing PEM with
+new parameters (ie., arguments \code{a} and \code{psi}), an
+\code{\link{evolution.model}} method to empirically estimate parameter values
+from a data set of traits (ie., argument \code{y} and \code{x}), and a
+\code{\link{predict}} method to estimate PEM scores for arbitrary graph
+locations (using argument \code{newdata}).
 
-The \code{as.data.frame.PEM} method extracts the eigenvectors from the
-object and allows one to use \code{\link{PEM-class}} objects as \code{data}
-parameter in function such as \code{\link{lm}} and \code{\link{glm}}.
-
-The \code{predict.PEM} method is a barebone interface to make predictions. It
-must be given species locations with respect to the phylogenetic graph
-(\code{target}), which are provided by function
-\code{\link{getGraphLocations}} and a linear model in the form of an object
-from \code{\link{lm}}. The user must provide auxiliary trait values if
-\code{lmobject} involves such traits.
+Graph locations are given as a three-column data frame:
+\describe{
+  \item{ref}{the index of the vertex or edge where each target can be found,}
+  \item{dist}{the phylogenetic distance along the edge where each target can
+    be found, or \code{NA} for a target located at a vertex,}
+  \item{lca}{the phylogenetic distance between the latest common ancestor of
+    the target in the graph and the target itself.}
+}
+One such data frame is one of the second element of the list produced by
+method \code{\link{locate.graph}} (called "location").
 }
 \section{Functions}{
 \itemize{
+\item \code{PEM()}: Create PEM-class
+
+A function creating a PEM-class object.
+
 \item \code{print(PEM)}: Print PEM-class
 
 A print method for PEM-class objects.
+
+\item \code{as.matrix(PEM)}: Method \code{as.matrix} for PEM-class Objects
+
+A method to extract the phylogenetic eigenvectors from a PEM-class object.
 
 \item \code{as.data.frame(PEM)}: Method \code{as.data.frame} for PEM-class Objects
 
 A method to extract the phylogenetic eigenvectors from a PEM-class object.
 
+\item \code{update(PEM)}: Update Method for PEM-class Objects
+
+An updating method to recalculate a PEM with new smoothness and evolution
+rate parameters.
+
+\item \code{evolution.model(PEM)}: Evolution Model Method for PEM-class Objects
+
+A method to estimate the smoothness and evolution rate parameters of a
+PEM-class object empirically on the basis of an observed quantitative trait
+and, optionally, optional trait(s).
+
 \item \code{predict(PEM)}: Predict Method for PEM-class Objects
 
-A predict method to predict species trait values using Phylogenetic
-Eigenvector Maps.
+A predict method to obtain PEM prediction scores for arbitrary graph
+locations.
 
 }}
+\examples{
+## Synthetic example
+
+## This example describes the phyogeny of 7 species (A to G) in a tree with 6
+## nodes, presented in Newick format, read by function
+## read.tree of package ape.
+
+t1 <- read.tree(text=paste(
+  "(((A:0.15,B:0.2)N4:0.15,C:0.35)N2:0.25,((D:0.25,E:0.1)N5:0.3,",
+  "(F:0.15,G:0.2)N6:0.3)N3:0.1)N1:0.1;",sep=""))
+t1
+summary(t1)
+
+## Example of a made up set of trait values for the 7 species
+y <- c(A=-1.1436265,B=-0.3186166,C=1.9364105,D=1.7164079,E=1.0013993,
+       F=-1.8586351,G=-2.0236371)
+
+## The phylogenetic tree is turned into an evolutionary graph as follows:
+x <- as.graph(t1)
+
+## The graph:
+x
+
+## This is the edge information of that simple graph:
+edge(x)
+
+## Calculate the (binary) influence matrix; E1 to E12 are the tree edges:
+IM1 <- InflMat(x)
+IM1
+
+## This is the edges associated with the influence matrix:
+edge(IM1)
+
+## This is the influence matrix for the tree leaves (ie., the graph's 
+## terminal vertices):
+IM1[x$species,]
+
+## Here is a suite of weighting function profiles:
+seq(0,1.5,0.001) \%>\%
+  plot(y=PEMweights(., a=0), ylim=c(0,1.7), type="l", xlab="distance",
+       ylab="weight")
+
+seq(0,1.5,0.001) \%>\%
+  lines(y=PEMweights(., a=0.5), col="red")
+
+seq(0,1.5,0.001) \%>\%
+  lines(y=PEMweights(., a=0.5, psi=1.5), col="green")
+
+seq(0,1.5,0.001) \%>\%
+  lines(y=PEMweights(., a=0.9), col="blue")
+
+## A Phylogenetic eigenvector maps (PEM) is build with the default parameters
+## as follows:
+PEM1 <- PEM(x)
+
+## The PEM object:
+PEM1
+
+## The as.matrix methods returns the phylogenetic eigenvectors as a matrix:
+as.matrix(PEM1)
+
+## The as.data.frame methods returns the phylogenetic eigenvectors as a data
+## frame:
+as.data.frame(PEM1)
+
+## The update method recalculates the PEM with new parameters:
+update(PEM1, a=log(0.25/(1 - 0.25)), psi=NULL)
+
+## Note: The way 'a' is estimated is based on an inverse-logit-transformed
+## linear sub-model. This approach is used to facilitate the bounding of the
+## steepness parameter in the [0,1] interval. Therefore, to set a given
+## steepness value, one has to provide its logit-transformed value. As a
+## reminder, the logit transformation is f(x) = log(x/(1 - x)).
+
+## To show the edges of the graph within the PEM object:
+edge(PEM1$graph())
+
+## A second PEM is initialized with a = 0.2 as follows:
+PEM2 <- PEM(x, a=log(0.2/(1 - 0.2)))
+PEM2
+
+## The edges of PEM2 graph:
+edge(PEM2$graph())
+
+## A third PEM is initialized with a = 1 as follows:
+PEM3 <- PEM(x, a=Inf)
+PEM3
+
+## The edges of PEM3 graph:
+edge(PEM3$graph())
+
+## Estimation on the steepness parameter empirically using data set y
+## Initial value must be finite (not -Inf nor Inf, meaning a > 0 and a < 1):
+PEM4 <- PEM(x, a=0)
+
+## Method evolution.model carry out the estimation:
+opt <- evolution.model(PEM4, y=y)
+opt
+
+## The edges of PEM4 graph after the estimation:
+edge(PEM4$graph())
+
+## Graph locations for target species X, Y, and Z not found in the original
+## data set:
+read.tree(
+  text = paste(
+    "((X:0.45,((A:0.15,B:0.2)N4:0.15,(C:0.25,Z:0.2)NZ:0.1)N2:0.05)NX:0.2,",
+    "(((D:0.25,E:0.1)N5:0.05,Y:0.25)NY:0.25,(F:0.15,G:0.2)N6:0.3)N3:0.1)N1;",
+    sep=""
+  )
+) -> tree
+tree
+
+## The tree is converted into a graph as follows:
+x2 <- as.graph(tree)
+x2
+
+## The target X, Y, and Z are extracted from graph x2 as follows:
+loc <- locate(x2, target = c("X","Y","Z"))
+loc
+
+## The list contains the residual graph and a data frame with the locations
+## of the target in the residual graph.
+
+## Building a PEM on the residual graph (assuming a = 0):
+PEM5 <- PEM(loc$x)
+
+## For making predictions, we need to do any of the following:
+## 1. run evolution.model(); doing this operation will change the parameter
+##    values,
+## 2  estimate the deviance using $dev(y, ...)
+## 3. estimate the variance using $S2(y, ...)
+
+## Before any of these operations is done, no variance estimate is available:
+PEM5$S2()
+
+## Presenting a variable to the PEM makes its variance estimate available
+## later on. For instance, presenting 'y' to the PEM5 while estimating its
+## deviance as follows:
+PEM5$dev(y)
+
+## This operation makes the variance estimate for 'y' available for later
+## access:
+PEM5$S2()
+
+## The predict method is used to generate the predictors as follows:
+scr <- predict(PEM5, loc$location)
+scr
+
+## The 'vf' attribute, which can be accessed as follows:
+attr(scr,"vf")
+## is the amount of variance associated with the evolutionary distance
+## between each target species and its latest common ancestor in the
+## evolutionary graph.
+
+## Given a model built using the PEM as follows:
+lm1 <- lm(y ~ U_2 + U_3 + U_5, data=as.data.frame(PEM5))
+
+## Predictions are obtained as follows:
+ypred <- predict(lm1, as.data.frame(scr))
+ypred
+
+## Estimate the ancestral trait values
+
+## The ancestors of the species of the tree are the vertices without extant
+## species:
+data.frame(
+  ref = which(!x$species),
+  dist = rep(NA_real_, sum(!x$species)),
+  lca = rep(0, sum(!x$species)),
+  row.names = rownames(x)[!x$species]
+) -> anc
+
+## The scores of the ancestors are obtained as follows:
+src_anc <- predict(PEM1, anc)
+## Note the absence of the 'vf' attributes since no variable has been
+## presented to PEM1.
+
+## Predictions are obtained from the previous linear model as follows:
+predict(lm1, as.data.frame(src_anc))
+
+}
 \references{
 Guénard, G., Legendre, P., and Peres-Neto, P. 2013. Phylogenetic eigenvector
 maps: a framework to model and predict species traits. Methods in Ecology 

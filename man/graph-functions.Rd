@@ -2,84 +2,56 @@
 % Please edit documentation in R/graph-functions.R
 \name{graph-functions}
 \alias{graph-functions}
-\alias{pop.graph}
+\alias{graph}
 \alias{add.vertex}
 \alias{add.edge}
 \alias{rm.edge}
 \alias{rm.vertex}
-\alias{collapse.vertex}
-\alias{Phylo2DirectedGraph}
-\title{MPSEM graph Manipulation Functions}
+\title{MPSEM Graph Manipulation Functions}
 \usage{
-pop.graph(n, vertex = list(), label = NULL)
+graph(data = data.frame())
 
-add.vertex(x, n, vertex = list(), label = NULL)
+add.vertex(x, data = data.frame())
 
-add.edge(x, from, to, edge = list(), label = NULL)
+add.edge(x, from, to, data = data.frame())
 
 rm.edge(x, id)
 
 rm.vertex(x, id)
-
-collapse.vertex(x, id)
-
-Phylo2DirectedGraph(tp)
 }
 \arguments{
-\item{n}{The number of vertices to populate a new graph (\code{pop.graph}) or
-to add to an existing graph (\code{add.vertex}).}
-
-\item{vertex}{A list of vertex properties.}
-
-\item{label}{Labels to be given to edges or vertices.}
+\item{data}{A \code{\link{data.frame}} providing data (and labels) to be
+assigned to the vertices or edges. It can be an empty data frame with row
+names providing the vertex labels.}
 
 \item{x}{A \code{graph-class} object.}
 
-\item{from}{The origins of the edges to be added (vertex labels or indices).}
+\item{from}{An integer or character vector. References to the origin of the
+edges to be added.}
 
-\item{to}{The destinations of the edges to be added (vertex labels or
-indices).}
+\item{to}{An integer or character vector. The destinations of the edges to be
+added (vertex references).}
 
-\item{edge}{A list of edge properties.}
-
-\item{id}{Indentity (label or index) of vertex or edge to be removed.}
-
-\item{tp}{Phylogenetic tree object of class \sQuote{phylo}, as defined in
-\code{\link[ape]{ape-package}}.}
-}
-\value{
-The function returns a \code{\link{graph-class}} object. Objects
-returned by \code{\link{Phylo2DirectedGraph}} have a \code{\link{numeric}}
-edge property called \sQuote{distance} featuring branch lengths, and a
-\code{link{logical}} vertex property called \sQuote{species} specifying
-whether a vertex is a tree tip or an internal node.
+\item{id}{An integer or character vector. The identity of vertex or edge to
+be removed (references).}
 }
 \description{
 A set of primitive functions for creating and munipulating
 MPSEM graphs.
 }
 \details{
-A new graph can be populated with \code{n} vertices using function
-\code{pop.graph}. Additional vertices can be added later with function
-\code{add.vertex}. The graphs so created contain no edges; the latter are
-added using function \code{add.edge}. Vertices and edges are removed using
-functions \code{rm.vertex} and \code{rm.edge}, respectively.
-
-Function \code{collapse.vertex} allows one to remove a vertex while
-reestablishing the connections between the vertices located above and below
-that vertex using a new set of edges.
-
-Function \code{Phylo2DirectedGraph} uses the MPSEM graph functions to convert
-a rooted phylogenetic tree of class \sQuote{phylo} (see
-\code{\link[ape]{ape-package}}) to a \code{\link{graph-class}} object. It
-recycles tip labels. It also creates default node labels if they were absent
-from the \sQuote{phylo} object, and uses them as vertex labels. The resulting
-acyclic graph can then be edited to represent cases that do not have a tree
-topology.
+A new graph is populated with vertices using function
+\code{graph()}. The function must be provided with a data frame. This data
+frame may be a 0 column data frame as long as its \code{row.names} attribute
+contains the number of elements necessary to reference the vertices.
+Additional vertices can be added later with function \code{add.vertex()}. The
+graph thus created contains no edge; the latter are added using function
+\code{add.edge()}. Edges and vertices are removed using functions
+\code{rm.edge()} and \code{rm.vertex()}, respectively.
 }
 \section{Functions}{
 \itemize{
-\item \code{pop.graph()}: Create Graph
+\item \code{graph()}: Create Graph
 
 Create a graph and populates it with vertices.
 
@@ -99,69 +71,64 @@ Remove edges from a graph.
 
 Remove vertices from a graph.
 
-\item \code{collapse.vertex()}: Collapse Vertices
-
-Remove vertices from a graph: remove vertices together with their associated
-edges.
-
-\item \code{Phylo2DirectedGraph()}: Phylogenetic Tree Conversion
-
-Create a new \code{\link{graph-class}} object from a phylo-class object
-(phylogenetic tree).
-
 }}
 \examples{
-## Populate a graph with 7 vertices labeled A-G having properties x and y:
-gr <- pop.graph(n=7,
-                vertex=list(x=rnorm(7,0,1),y=rnorm(7,0,1)),
-                label=c("A","B","C","D","E","F","G"))
-gr
 
-## Adding 3 vertices H, I, and J with property x (y is absent) and a new
-## property z (type character), which is unknown for A-G:
-gr <- add.vertex(x=gr,
-                 n=3,
-                 label=c("H","I","J"),
-                 vertex=list(x=rnorm(3,0,1),z=c("A","B","C")))
-gr
-gr$vertex
+## Populate a graph with 7 vertices labeled A-G and edge properties x and y:
+data.frame(
+  quantitative = c(1.1,7.2,7.2,4.1,5.5,6.9,3.3),
+  factor = factor(c("A","A","A","B","B","B","B")),
+  row.names = c("A","B","C","D","E","F","G")
+) \%>\%
+  graph -> x
 
-## Adding 10 edges, labeled E1-E10 and with properties a and b, to the graph:
-gr <- add.edge(x=gr,
-               from=c("A","B","B","C","C","D","D","E","E","F"),
-               to=c("A","C","D","E","F","F","G","H","I","J"),
-               edge=list(a=rnorm(10,0,1),b=rnorm(10,0,1)),
-               label=paste("E",1:10,sep=""))
-gr
-gr$edge
+## Note from package magrittr:
+## x \%>\% f(y, z)    is equivalent to f(x, y, z)
+## x \%<>\% f(y, z)   is equivalent to x <- f(x, y, z)
 
-## Removing edges 2, 4, and 7 from the graph:
-print(rm.edge(gr,id=c(2,4,7)))
+## Add three vertices without descriptors:
+x \%>\% add.vertex(
+  data = data.frame(row.names = c("H","I","J"))
+)
 
-## Removing vertices 1, 3, 7, and 10 from the graph:
-print(rm.vertex(gr,id=c(1,3,7,10)))
-# Notice that the edges that had one of the removed vertex as their
-# origin or destination are also removed:
-print.default(rm.vertex(gr,id=c(1,3,7,10)))
+## This is another way to add vertices:
+x \%<>\% add.vertex(
+  data = data.frame(
+    factor = factor(c("C","C","C")),
+    ordered = ordered(c(1,2,2)),
+    row.names = c("H","I","J")
+  )
+)
 
-## Vertex collapsing.
-x <- pop.graph(n=9,label=c("A","B","C","D","E","F","G","H","I"))
-x <- add.edge(x,from=c("A","A","B","B","C","C","D","D","E","E"),
-              to=c("B","C","D","E","E","I","F","G","G","H"),
-              label=paste("E",1:10,sep=""),
-              edge=list(length=c(1,2,3,2,1,3,2,2,1,3)))
-print.default(x)
-for(i in c("A","B","C","D","E","F","G","H","I"))
-  print(collapse.vertex(x,id=i))
+## Adding 10 edges, labeled E1-E10 and with properties d and r, to the graph:
+x \%<>\% add.edge(
+  from = c("A","B","B","C","C","D","D","E","E","F"),
+  to = c("A","C","D","E","F","F","G","H","I","J"),
+  data = data.frame(
+    distance = c(1,5,2,3,3,2,5,1,1,1),
+    reversible = c(TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,FALSE),
+    row.names = paste("E",1:10,sep="")
+  )
+)
 
-if(require(ape)) {
-  tree1 <- read.tree(
-    text=paste(
-      "(((A:0.15,B:0.2)N4:0.15,C:0.35)N2:0.25,((D:0.25,E:0.1)N5:0.3,",
-      "(F:0.15,G:0.2)N6:0.3)N3:0.1)N1;",sep=""))
-  x <- Phylo2DirectedGraph(tree1)
-  print(x)
-}
+## Adding three more edges, this time without variable 'reversible', but
+## adding a variable called 'factor':
+x \%<>\% add.edge(
+  from = c("E","F","G"),
+  to = c("A","B","C"),
+  data.frame(
+    distance = c(2,3,1),
+    factor = factor(c("S","S","G")),
+    row.names = c("E1","E11","E23")
+  )
+)
+
+## Removing two edges (E3 and E5):
+x \%<>\% rm.edge(id=c("E3","E5"))
+
+## Removing vertices B, F, and G with their associated edges:
+x \%<>\% rm.vertex(id=c("B","F","G"))
+
 
 }
 \references{
@@ -174,9 +141,6 @@ relationships using reticulated networks. Zoologica Scripta 33: 89-96
 
 Blanchet, F. G., Legendre, P. & Borcard, D. 2008. Modelling directional
 spatial processes in ecological data. Ecological Modelling 215: 325-336
-}
-\seealso{
-\code{\link{graph-class}}.
 }
 \author{
 \packageAuthor{MPSEM}

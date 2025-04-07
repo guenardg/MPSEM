@@ -1,10 +1,10 @@
-/*************************************************************************
+/*******************************************************************************
  
- (c) 2010-2022 Guillaume Guénard
+ (c) 2010-2025 Guillaume Guénard
  Université de Montréal, Montreal, Quebec, Canada
  
- **handles directed graphs in the context of modelling processes modulating**
- **trait evolution along phylogeny.**
+ ** handles directed graphs in the context of modelling processes modulating **
+ ** trait evolution along phylogeny. **
  
  This file is part of MPSEM
  
@@ -23,20 +23,30 @@
  
  C functions definitions
  
- *************************************************************************/
+ ******************************************************************************/
+
+#ifndef MPSEM_C_H
 
 // Defines
-#define length 0x0
-#define meanchar 0x0
-#define charvalue 0x1
-#define missing 0x0        // ! check for a more suitable missing value marker.
-// #define with_testing
+#define MPSEM_C_H
+// #define WITH_TESTING
+// #define GRAPH_API
 
-#ifndef M_LN_2PI
-#define M_LN_2PI 1.837877066409345d  // log(2*pi)
-#endif
+/*******************************************************************************
+ * Note:
+ * The C language code enclosed within the GRAPH_API #define was erstwhile used
+ * to represent directed graph and is not actually needed for that purpose.
+ * Rather than removing this code, we decided to put is under wraps for the time
+ * being.
+ ******************************************************************************/
+
+#include<R.h>
+#include<Rmath.h>
+#include <stdbool.h>
 
 // Type declarations
+
+#ifdef GRAPH_API
 
 // Two mutually contained structures to represent directed graphs.
 typedef struct dedge {
@@ -65,8 +75,10 @@ typedef struct dgraph {
   char **elabels;       // Edge labels.
   unsigned int nn;      // Number of vertices involved in the graph.
   struct dvertex* dn;   // The list of vertices.
-  char **nlabels;       // vertex labels.
+  char **vlabels;       // vertex labels.
 } dgraph;
+
+#endif
 
 // Structure to wrap arrays into matrices.
 typedef struct matrix {
@@ -76,7 +88,15 @@ typedef struct matrix {
   double* v;            // Values attached to the matrix, ordered by column(s).
 } matrix;
 
+
 // C functions declarations.
+
+// Influence matrix functions:
+bool all_proc(bool* ipr, int nv);
+bool can_proc(int* fr, int* to, bool* ipr, int ne, int v);
+
+#ifdef GRAPH_API
+
 // Edge functions:
 dedge* allocdedge(unsigned int ne);
 dedge* reallocdedge(dedge* de, unsigned int ne);
@@ -98,11 +118,13 @@ dvertex* freedvertex(dvertex* dn, unsigned int nn);
 
 // Graph functions.
 dgraph initdgraph(char* id, unsigned int ne, char** elabels, unsigned int nn,
-                  char** nlabels);
+                  char** vlabels);
 void assigndgraphvalues(dgraph* dgr, double* ev, unsigned int nev, double* nv,
                         unsigned int nnv);
 void makedgraph(int* a, int* b, dgraph* dgr);
 void freedgraph(dgraph* dgr);
+
+#endif // GRAPH_API
 
 // Matrix functions.
 matrix initmatrix(char* id, unsigned int nr, unsigned int nc);
@@ -132,49 +154,39 @@ void getrow(matrix *mat, unsigned int i, double *a);
 void getcolumn(matrix *mat, unsigned int j, double *a);
 
 // Auxiliary functions.
-void InfluenceRD(dgraph* dgr, unsigned int e, int* out);
-unsigned int rselect(double* prob, unsigned int n);
-void evolveqcalongtree(dgraph* dgr, double* tw, unsigned int ntw,
-                       unsigned int sr, unsigned int nnv);
-void OUdedgecoefs(double* ev, double* lg, unsigned int ne, double alpha,
-                  double sigma);
-void simOUprocess(dgraph* dgr, unsigned int sr, unsigned int n, double* out);
 void PEMvarC(double* d, int* nd, double* a, double* psi, double* res);
 void PEMweightC(double* d, int* nd, double* a, double* psi, double* res);
 void PsquaredC(double* p, double* o, int* n, double* res);
 
 // Testing functions.
-#ifdef with_testing
+#ifdef WITH_TESTING
+
+#ifdef GRAPH_API
+
 void checkdedge(dedge* de, unsigned int ne);
 void checkdedgevalues(dedge* de, unsigned int ne);
 void checkdvertex(dvertex* dn, unsigned int nn);
 void checkdvertexvalues(dvertex* dn, unsigned int nn);
 void checkdgraph(dgraph* dgr);
 void checkdgraphvalues(dgraph* dgr);
+
+#endif // GRAPH_API
+
 void checkmatrix(matrix* mat);
-/*
-void test_function(double *mat1, double *mat2, double *res, int *rmat1,
-                   int *cmat2, int *p);
-void test_function2(double *mat1, double *mat2, double *res, int *rmat1,
-                    int *rmat2, int *cols);
-void test_function3(double *mat1, double *d, double *mat2, double *res,
-                    int *rmat1, int *rmat2, int *cols);
-void test_function4(double *mat1, int* dimmat1, double *m);
-void test_function5(double *mat1, int* dimmat1, double *m);
-void test_function6(double *mat1, double *d, double *mat2, double *res,
-                    int *rmat1, int *cmat2, int *crmats);
-*/
-#endif
+
+#endif // WITH_TESTING
 
 // R functions:
-void PEMInfMat(int* from, int* to, int* ne, int* nn, int* out);
-void EvolveQC(int* from, int* to, int* ne, int* nn, double* nv, double* tw,
-              int* ntw, int* anc, int* n, int* sr);
-void OUsim(int* from, int* to, int* ne, int* nn, double* lg, double* alpha,
-           double* sigma, double* opt, int* n, int* sr, double* out);
+void dstIdxC(int* n, int* na, int* nb, int* nn, int* a, int* b, int* idx);
+void InflMatC(int* ne, int* nv, int* from, int* to, int* B);
+void invDistWeightingC(int* n, double* a, double* d, double* w);
+void hmeanC(int* n, double* x, double* res);
+void whmeanC(int* n, double* x, double* w, double* res);
 void PEMbuildC(int* ne, int* nsp, double* Bc, double* m, double* d, double* a,
                double* psi, double* w, double* BcW);
 void PEMupdateC(int* ne, int* nsp, double* Bc, double* d, double* a,
                 double* psi, double* w, double* BcW);
 void PEMLoc2Scores(int* ne, double* mw, int* ntgt, double* loc, double* a,
                    double* psi, int* nd, double* d, double* vt, double* sc);
+
+#endif // MPSEM_C_H

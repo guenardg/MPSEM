@@ -1,11 +1,11 @@
 ## **************************************************************************
 ##
-##    (c) 2010-2022 Guillaume Guénard
+##    (c) 2010-2025 Guillaume Guénard
 ##        Department de sciences biologiques,
 ##        Université de Montréal
 ##        Montreal, QC, Canada
 ##
-##    **Package MPSEM description**
+##    ** Package MPSEM description **
 ##
 ##    This file is part of MPSEM
 ##
@@ -47,25 +47,24 @@
 #' predictions of trait values for the target species on the basis of those
 #' observed for the species used in the model.
 #' 
-#' Functions \code{\link{PEM.build}}, \code{\link{PEM.updater}},
-#' \code{\link{PEM.fitSimple}}, and \code{\link{PEM.forcedSimple}} allow one to
-#' build, update (i.e. recalculate with alternative weighting parameters) as well
-#' as to estimate or force arbitrary values for the weighting function
-#' parameters.
+## Functions \code{\link{PEM.build}}, \code{\link{PEM.updater}},
+## \code{\link{PEM.fitSimple}}, and \code{\link{PEM.forcedSimple}} allow one to
+## build, update (i.e. recalculate with alternative weighting parameters) as well
+## as to estimate or force arbitrary values for the weighting function
+## parameters.
 #' 
-#' Functions \code{\link{getGraphLocations}} and
-#' \code{\link{Locations2PEMscores}} allow one to make predictions using method
-#' \code{\link{predict.PEM}} and a linear model. To obtain this linear model,
-#' one can use either function \code{\link{lm}} or auxiliary functions
-#' \code{\link{lmforwardsequentialsidak}} or
-#' \code{\link{lmforwardsequentialAICc}}, which perform forward-stepwise
-#' variable addition on the basis of either familiwise type I error rate or the
-#' Akaike Information Criterion (AIC), respectively.
+## Functions \code{\link{getGraphLocations}} and
+## \code{\link{Locations2PEMscores}} allow one to make predictions using method
+## \code{\link{predict.PEM}} and a linear model. To obtain this linear model,
+## one can use either function \code{\link{lm}} or auxiliary functions
+## \code{\link{lmforwardsequentialsidak}} or
+## \code{\link{lmforwardsequentialAICc}}, which perform forward-stepwise
+## variable addition on the basis of either familiwise type I error rate or the
+## Akaike Information Criterion (AIC), respectively.
 #' 
 #' The package provides low-level utility functions for performing operations on
 #' graphs (see \link{graph-functions}), calculate influence matrix
-#' (\code{\link{PEMInfluence}}), and simulate trait values (see
-#' \link{trait-simulator}).
+#' (\code{\link{InflMat}}), and so on.
 #' 
 #' A phylogenetic modelling tutorial using \code{MPSEM} is available as a
 #' package vignette. See example below.

@@ -1,10 +1,10 @@
 /*************************************************************************
  
- (c) 2010-2022 Guillaume Guénard
+ (c) 2010-2025 Guillaume Guénard
  Université de Montréal, Montreal, Quebec, Canada
  
- **handles directed graphs in the context of modelling processes modulating**
- **trait evolution along phylogeny.**
+ ** handles directed graphs in the context of modelling processes modulating **
+ ** trait evolution along phylogeny. **
  
  This file is part of MPSEM
  
@@ -26,9 +26,243 @@
  *************************************************************************/
 
 // Includes
-#include<R.h>
-#include<Rmath.h>
 #include"MPSEM.h"
+
+// Internal distance vector indexing.
+void dstIdxC(int *n, int* na, int* nb, int* nn, int* a, int* b, int* idx) {
+  
+  int i, ii, j, jj, k;
+  
+  for(i = 0, j = 0, k = 0; k < *nn; i++, j++, k++) {
+    if(i == *na) i = 0;
+    if(j == *nb) j = 0;
+    ii = a[i];
+    jj = b[j];
+    if(jj > ii)
+      idx[k] = jj + (ii - 1)*(*n) - ii*(ii + 1)/2;
+    else if(jj < ii)
+      idx[k] = ii + (jj - 1)*(*n) - jj*(jj + 1)/2;
+    else
+      idx[k] = NA_INTEGER;
+  }
+  
+  return;
+}
+
+// Influence matrix calculation.
+
+// Internal function determining whether all vertices have been processed.
+bool all_proc(bool* ipr, int nv) {
+  
+  bool out = true;
+  int i;
+  
+  for(i = 0; i < nv; i++)
+    if(!ipr[i]) {
+      out = false;
+      break;
+    }
+  
+  return(out);
+}
+
+// Internal function that check whether all prior vertices have been processed.
+bool can_proc(int* fr, int* to, bool* ipr, int ne, int v) {
+  
+  int i;
+  bool out;
+  
+  for(i = 0, out = true; i < ne; i++)
+    if(to[i] == v)
+      if(!ipr[fr[i]]) {
+        out = false;
+        break;
+      }
+  
+  return(out);
+}
+
+// Calculate the influence matrix.
+void InflMatC(int* ne, int* nv, int* from, int* to, int* B) {
+  
+  int i, j, k, os1, os2, pass;
+  
+  for(i = 0; i < *ne; i++) {
+    from[i]--;
+    to[i]--;
+  }
+  
+  /* Verify that the vertex indices in 'from' and 'to' are not higher than the
+   * number of vertices declared as 'nv'. */
+  for(i = 0, k = 0; i < *ne; i++) {
+    j = from[i];
+    if(j > k) k = j;
+    j = to[i];
+    if(j > k) k = j;
+  }
+  
+  if(!(k < *nv)) {
+    REprintf("Error (InflMat.c): Vertex indices in 'from' and 'to' > 'nv'.");
+    return;
+  }
+  
+  // Allocate memory for the is-processed vector.
+  bool* is_proc = (bool*)R_Calloc(*nv,bool);
+  
+  // Initialize the is-processed vector with all true.
+  for(i = 0; i < *nv; i++)
+    is_proc[i] = true;
+  
+  /* Assign false to is-processed of any vertex that is an edge destination.
+   This effectively makes any root true; roots need no processing here. */
+  for(i = 0; i < *ne; i++)
+    is_proc[to[i]] = false;
+  
+  if(all_proc(is_proc,*nv))
+    REprintf("Error (InflMat.c): The graph has no root.");
+  
+  pass = 0;
+  
+  while(!all_proc(is_proc,*nv)) {
+    for(i = 0; i < *nv; i++)
+      if(!is_proc[i]) {   // Is the vertex unprocessed?
+        
+        /* Can the vector be processed. In other word, have all prior vertices
+         * of i already been processed? */
+        if(can_proc(from,to,is_proc,*ne,i)) {
+          
+          for(j = 0; j < *ne; j++)
+            if(to[j] == i) {
+              for(k = 0, os1 = i, os2 = from[j]; k < *ne;
+              k++, os1 += *nv, os2 += *nv)
+                B[os1] |= B[os2];
+              B[i + *nv * j] = true;
+            }
+          
+          is_proc[i] = true;
+        }
+      }
+    
+    pass++;
+    R_CheckUserInterrupt();
+  }
+  
+  // Free memory
+  R_Free(is_proc);
+  
+  return;
+}
+
+/*
+ * An inverse distance weighting function.
+ * In any cases, the sum of the resulting weights (w[...]) is equal to 1.
+ * Argument *a is a single exponent for the distances. When this exponent is 0,
+ * all the weights are equal to 1/(*n).
+ * Distances are positive; One or more distances of zero make(s) all non-zero
+ * distances in d[...], being associated with weights of 0, and all zero
+ * distances being associated with weights of 1/nz, where nz is the number of
+ * zero distances in d[...].
+ * When *a is non-zero and no distance is equal to 0, the weighting proceeds as
+ * w[i] = d[i]^(-a) / sum for{i = 0 ; i < *n; i++} d[i]^(-a)
+ */
+void invDistWeightingC(int* n, double* a, double* d, double* w) {
+  
+  int i, nz;
+  double tmp;
+  
+  if(*n == 1) {
+    
+    *w = 1.0;
+    
+    return;
+  }
+  
+  if(*a == 0.0) {
+    
+    tmp = 1.0/(*n);
+    
+    for(i = 0; i < *n; i++)
+      w[i] = tmp;
+    
+  } else {
+    
+    for(i = 0, nz = 0; i < *n; i++)
+      if(d[i] == 0.0)
+        nz++;
+      
+      if(nz) {
+        
+        tmp = 1.0/nz;
+        
+        for(i = 0; i < *n; i++)
+          w[i] = (d[i] == 0.0) ? tmp : 0.0;
+        
+      } else {
+        
+        for(i = 0, tmp = 0.0; i < *n; i++) {
+          w[i] = R_pow(d[i], -(*a));
+          tmp += w[i];
+        }
+        
+        for(i = 0; i < *n; i++)
+          w[i] /= tmp;
+      }
+      
+  }
+  
+  return;
+}
+
+/* Calculate the equal-weighted or weighted harmonic mean of a set of *n*
+ * values.
+ * Note: if a single value is 0, the harmonic mean of the whole set is 0.
+ */
+void hmeanC(int* n, double* x, double* res) {
+  
+  int i;
+  double acc;
+  
+  for(i = 0, acc = 0.0; i < *n; i++) {
+    
+    if(x[i] == 0) {
+      *res = 0.0;
+      return;
+    }
+    
+    acc += 1.0/x[i];
+  }
+  
+  acc /= (double)*n;
+  *res = 1.0/acc;
+  
+  return;
+}
+
+void whmeanC(int* n, double* x, double* w, double* res) {
+  
+  int i;
+  double accx, accw;
+  
+  for(i = 0, accx = 0.0, accw = 0.0; i < *n; i++) {
+    
+    if(w[i] != 0.0) {
+      
+      if(x[i] == 0.0) {
+        *res = 0.0;
+        return;
+      }
+      
+      accx += w[i]/x[i];
+      accw += w[i];
+    }
+  }
+  
+  *res = accw/accx;
+  
+  return;
+}
+
+#ifdef GRAPH_API
 
 // C Structure-based graph representation scheme.
 
@@ -175,7 +409,7 @@ dvertex* freedvertex(dvertex* dn, unsigned int nn) {
 
 // Build a directed graph.
 dgraph initdgraph(char* id, unsigned int ne, char** elabels, unsigned int nn,
-                  char** nlabels) {
+                  char** vlabels) {
   dgraph dgr;
   dgr.id = id;
   dgr.ne = ne;
@@ -185,7 +419,7 @@ dgraph initdgraph(char* id, unsigned int ne, char** elabels, unsigned int nn,
   dgr.nn = nn;
   dgr.dn = allocdvertex(nn);
   dgr.dn = initdvertex(dgr.dn,0,nn);
-  dgr.nlabels = nlabels;
+  dgr.vlabels = vlabels;
   return dgr;
 }
 
@@ -232,6 +466,8 @@ void freedgraph(dgraph* dgr) {
     dgr->nn = 0;
   return;
 }
+
+#endif // GRAPH_API
 
 // Initialize a matrix structure and allocate necessary ressources.
 matrix initmatrix(char* id, unsigned int nr, unsigned int nc) {
@@ -541,94 +777,6 @@ void getcolumn(matrix *mat, unsigned int j, double *a) {
   return;
 }
 
-// Function to calculate the graph's influence matrix.
-void InfluenceRD(dgraph* dgr, unsigned int e, int* out) {
-  unsigned int i;
-  out[dgr->de[e].d->id] = 1;
-  if(dgr->de[e].d->nd)
-    for(i = 0; i < dgr->de[e].d->nd; i++)
-      InfluenceRD(dgr,dgr->de[e].d->d[i]->id,out);
-  return;
-}
-
-/* Function to select an index between [0,n-1] with specified and unequal
- * probabilities.*/
-unsigned int rselect(double* prob, unsigned int n) {
-  unsigned int i;
-  double rnb, acc = 0.0;
-  GetRNGstate();
-  rnb = runif(0.0,1.0);
-  PutRNGstate();
-  for(i = 0; i < n; i++) {
-    acc += prob[i];
-    if(rnb <= acc)
-      break;
-  }
-  if(i < n)
-    return i;
-  else {
-    warning("Some regime transition probabilities may not sum to 1.");
-    return(n - 1);
-  }
-}
-
-/* Function to evolve a qualitative character along a rooted phylogenetic tree.
- * That function uses the dgraph framework and its is the user's responsability
- * to make sure that the directed graph pointed by dgr is indeed a tree.
- * The function will otherwise fail to work correctly.*/
-void evolveqcalongtree(dgraph* dgr, double* tw, unsigned int ntw,
-                       unsigned int sr, unsigned int nnv) {
-  unsigned int i, j;
-  if(dgr->dn[sr].nd) {
-    for(i = 0; i < dgr->dn[sr].nd; i++) {
-      for(j = 0; j < nnv; j++)
-        dgr->dn[sr].d[i]->d->v[j] =
-          (double)(rselect(&tw[((unsigned int)(dgr->dn[sr].v[j]))*ntw],ntw));
-      evolveqcalongtree(dgr,tw,ntw,dgr->dn[sr].d[i]->d->id,nnv);
-    }
-  }
-  return;
-}
-
-/* Calculate the edge coefficients of the simulation of character evolution
- * according to the Ornstein-Uhlenbeck process.
- * The type double array pointed by ev must be pre-allocated to size 3*ne.*/
-void OUdedgecoefs(double* ev, double* lg, unsigned int ne, double alpha,
-                  double sigma) {
-  unsigned int i, idx;
-  if(alpha != 0.0) {
-    for(i = 0, idx = 0; i < ne; i++) {
-      ev[idx++] = exp(-alpha * lg[i]);
-      ev[idx++] = 1.0 - exp(-alpha * lg[i]);
-      ev[idx++] = sigma * sqrt((1.0 - exp(-2.0 * alpha * lg[i]))/(2 * alpha));
-    }
-  }
-  else {
-    for(i = 0, idx = 0; i < ne; i++) {
-      ev[idx++] = 1.0;
-      ev[idx++] = 0.0;
-      ev[idx++] = sigma * sqrt(lg[i]);
-    }
-  }
-  return;
-}
-
-void simOUprocess(dgraph* dgr, unsigned int sr, unsigned int n, double* out) {
-  unsigned int i, j, top, d;
-  double *lc, opt;
-  if(dgr->dn[sr].nd) {
-    for(i = 0; i < dgr->dn[sr].nd; i++) {
-      d = dgr->dn[sr].d[i]->d->id;
-      lc = dgr->dn[sr].d[i]->v;
-      opt = *(dgr->dn[sr].d[i]->d->v);
-      for(j = 0, top = 0; j < n; j++, top += dgr->nn)
-        out[top + d] = rnorm(out[top + sr] * lc[0] + opt * lc[1],lc[2]);
-      simOUprocess(dgr,dgr->dn[sr].d[i]->d->id,n,out);
-    }
-  }
-  return;
-}
-
 void PEMvarC(double* d, int* nd, double* a, double* psi, double* res) {
   int i;
   for(i = 0; i < *nd ; i++) {
@@ -678,10 +826,13 @@ void PsquaredC(double* p, double* o, int* n, double* res) {
   return;
 }
 
-#ifdef with_testing
+#ifdef WITH_TESTING
 /* Printing functions to diagnose whether the directed edges and vertices are
  * correctly described.
  * Print directed edges and the vertices; they point at down- and upward.*/
+
+#ifdef GRAPH_API
+
 void checkdedge(dedge* de, unsigned int ne) {
   unsigned int i;
   printf("Checking %d edge(s) of size %d starting at address %p\n",
@@ -761,6 +912,8 @@ void checkdgraphvalues(dgraph* dgr) {
   return;
 }
 
+#endif // GRAPH_API
+
 void checkmatrix(matrix* mat) {
   unsigned int i, j, offset;
   printf("Checking %d x %d matrix %s stored at address %p:\n",mat->nr,mat->nc,
@@ -777,133 +930,8 @@ void checkmatrix(matrix* mat) {
     printf("Matrix %s is empty\n",mat->id);
   return;
 }
-/*
-void test_function(double *mat1, double *mat2, double *res, int *rmat1,
-                   int *cmat2, int *p) {
-  matrix a, b, c;
-  a = assignmatrix("A",(unsigned int)(*rmat1),(unsigned int)(*p),mat1);
-  b = assignmatrix("B",(unsigned int)(*p),(unsigned int)(*cmat2),mat2);
-  c = assignmatrix("C",(unsigned int)(*rmat1),(unsigned int)(*cmat2),res);
-  checkmatrix(&a);
-  checkmatrix(&b);
-  checkmatrix(&c);
-  matrixproduct(&a, &b, &c);
-  return;
-}
 
-void test_function2(double *mat1, double *mat2, double *res, int *rmat1,
-                    int *rmat2, int *cols) {
-  matrix a, b, c;
-  a = assignmatrix("A",(unsigned int)(*rmat1),(unsigned int)(*cols),mat1);
-  b = assignmatrix("B",(unsigned int)(*rmat2),(unsigned int)(*cols),mat2);
-  c = assignmatrix("C",(unsigned int)(*rmat1),(unsigned int)(*rmat2),res);
-  checkmatrix(&a);
-  checkmatrix(&b);
-  checkmatrix(&c);
-  matrixproducttrans(&a, &b, &c);
-  return;
-}
-
-void test_function3(double *mat1, double *d, double *mat2, double *res,
-                    int *rmat1, int *rmat2, int *cols) {
-  matrix a, b, c;
-  a = assignmatrix("A",(unsigned int)(*rmat1),(unsigned int)(*cols),mat1);
-  b = assignmatrix("B",(unsigned int)(*rmat2),(unsigned int)(*cols),mat2);
-  c = assignmatrix("C",(unsigned int)(*rmat1),(unsigned int)(*rmat2),res);
-  checkmatrix(&a);
-  checkmatrix(&b);
-  checkmatrix(&c);
-  matrixproductweightedtrans(&a, d, &b, &c);
-  return;
-}
-
-void test_function4(double *mat1, int* dimmat1, double *m) {
-  matrix a;
-  a = assignmatrix("A",(unsigned int)(dimmat1[0]),(unsigned int)(dimmat1[1]),
-                   mat1);
-  checkmatrix(&a);
-  rowcentermeans(&a,&a,m);
-  return;
-}
-
-void test_function5(double *mat1, int* dimmat1, double *m) {
-  matrix a;
-  a = assignmatrix("A",(unsigned int)(dimmat1[0]),(unsigned int)(dimmat1[1]),
-                   mat1);
-  checkmatrix(&a);
-  colcentermeans(&a,&a,m);
-  return;
-}
-
-void test_function6(double *mat1, double *d, double *mat2, double *res,
-                    int *rmat1, int *cmat2, int *crmats) {
-  matrix a, b, c;
-  a = assignmatrix("A",(unsigned int)(*rmat1),(unsigned int)(*crmats),mat1);
-  b = assignmatrix("B",(unsigned int)(*crmats),(unsigned int)(*cmat2),mat2);
-  c = assignmatrix("C",(unsigned int)(*rmat1),(unsigned int)(*cmat2),res);
-  checkmatrix(&a);
-  checkmatrix(&b);
-  checkmatrix(&c);
-  matrixweightedproduct(&a, d, &b, &c);
-  return;
-} */
-
-#endif
-
-void PEMInfMat(int* from, int* to, int* ne, int* nn, int* out) {
-  dgraph* dgr;
-  unsigned int i, idx;
-  dgr = (dgraph*)R_Calloc(1,dgraph);
-  *dgr = initdgraph(NULL,*ne,NULL,*nn,NULL);
-  makedgraph(from,to,dgr);
-  for(i = 0, idx = 0; i < *ne; i++, idx += *nn)
-    InfluenceRD(dgr,i,&out[idx]);
-  freedgraph(dgr);
-  R_Free(dgr);
-  return;
-}
-
-// Evolve a qualititave character along a phylogenetic tree.
-void EvolveQC(int* from, int* to, int* ne, int* nn, double* nv, double* tw,
-              int* ntw, int* anc, int* n, int* sr) {
-  dgraph* dgr;
-  unsigned int i, sri, anci;
-  dgr = (dgraph*)R_Calloc(1,dgraph);
-  *dgr = initdgraph("Tree",*ne,NULL,*nn,NULL);
-  makedgraph(from,to,dgr);
-  assigndvertexvalues(dgr->dn,dgr->nn,nv,*n);
-  sri = (*sr)-1;
-  anci = ((double)(*anc))-1;
-  for(i = 0; i < *n; i++)
-    dgr->dn[sri].v[i] = anci;
-  evolveqcalongtree(dgr,tw,(unsigned int)(*ntw),sri,*n);
-  for(i = 0; i < ((*n)*(*nn)); i++)
-    nv[i]++;
-  freedgraph(dgr);
-  R_Free(dgr);
-  return;
-}
-
-void OUsim(int* from, int* to, int* ne, int* nn, double* lg, double* alpha,
-           double* sigma, double* opt, int* n, int* sr, double* out) {
-  dgraph* dgr;
-  unsigned int i, idx, sri;
-  double* ev;
-  dgr = (dgraph*)R_Calloc(1,dgraph);
-  *dgr = initdgraph("Tree",*ne,NULL,*nn,NULL);
-  makedgraph(from,to,dgr);
-  ev = (double*)R_Calloc(3*(*ne),double);
-  OUdedgecoefs(ev,lg,(unsigned int)(*ne),*alpha,*sigma);
-  assigndgraphvalues(dgr,ev,3,opt,1);
-  sri = (*sr) - 1;
-  for (i = 0, idx = sri; i < *n; i++, idx += *nn)
-    out[idx] = dgr->dn[sri].v[0];
-  simOUprocess(dgr,sri,(unsigned int)(*n),out);
-  R_Free(ev);
-  freedgraph(dgr);
-  R_Free(dgr);
-  return;
-}
+#endif // WITH_TESTING
 
 void PEMbuildC(int* ne, int* nsp, double* Bc, double* m, double* d, double* a,
                double* psi, double* w, double* BcW) {
